@@ -1,29 +1,131 @@
+<!DOCTYPE html>
+<html lang="fi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LCD OCR – testiversio</title>
+<script src="https://cdn.jsdelivr.net/npm/tesseract.js@4.1.1/dist/tesseract.min.js"></script>
+<style>
+  body { font-family: sans-serif; text-align:center; margin:0; padding:10px; }
+  video { width:100%; max-width:400px; border:1px solid #ccc; }
+  canvas { display:none; }
+  #result { font-size:1.2em; margin-top:10px; }
+  button { margin:5px; padding:10px; font-size:1em; }
+</style>
+</head>
 <body>
 
 <h2>LCD OCR – testiversio</h2>
 
-<video id="video" autoplay playsinline></video>
-
-<button onclick="toggleTorch()">🔦 Valo</button>
-<button onclick="scan()">📸 Skannaa tulos</button>
-
+<video id="video" autoplay playsinline muted></video>
 <canvas id="raw"></canvas>
 <canvas id="bw"></canvas>
 
-<div id="text">Ei skannausta vielä</div>
+<div>
+  <button id="torchBtn">🔦 Valo</button>
+  <button id="scanBtn">📸 Skannaa tulos</button>
+</div>
+
+<div id="result">Ei skannausta vielä</div>
 
 <script>
-  // TÄNNE KAIKKI JAVASCRIPT
-  const video = document.getElementById('video');
-  const raw = document.getElementById('raw');
-  const bw = document.getElementById('bw');
-  const text = document.getElementById('text');
+const video = document.getElementById('video');
+const raw = document.getElementById('raw');
+const bw = document.getElementById('bw');
+const result = document.getElementById('result');
+const scanBtn = document.getElementById('scanBtn');
+const torchBtn = document.getElementById('torchBtn');
 
-  function scan() {
-    const w = video.videoWidth;
-    const h = video.videoHeight;
-    // ... koko scan()-koodi ...
+let stream, track;
+
+// 🔹 Käynnistä kamera
+async function startCamera() {
+  try {
+    stream = await navigator.mediaDevices.getUserMedia({
+      video: { facingMode: { ideal: "environment" } },
+      audio: false
+    });
+    video.srcObject = stream;
+    track = stream.getVideoTracks()[0];
+    await video.play();
+    autoScan(); // Käynnistä automaattinen skannaus
+  } catch(e) {
+    alert("Kamera ei käynnistynyt: " + e.message);
   }
+}
+
+// 🔹 Torch-nappi
+torchBtn.onclick = () => {
+  if(!track) return;
+  const cap = track.getCapabilities();
+  if(cap.torch) {
+    track.applyConstraints({ advanced:[{torch: true}] });
+  } else alert("Torch ei tuettu tässä laitteessa");
+};
+
+// 🔹 Scan-nappi (manuaalinen)
+scanBtn.onclick = () => scan();
+
+// 🔹 Automaatio: skannaa joka 2 sekuntia
+function autoScan() {
+  scan();
+  setTimeout(autoScan, 2000);
+}
+
+// 🔹 Scan-funktio
+async function scan() {
+  if(video.readyState < 2) return;
+
+  const w = video.videoWidth;
+  const h = video.videoHeight;
+
+  // 🔹 Rajaus keskelle LCD:ä
+  const cropX = w*0.3, cropY = h*0.25, cropW = w*0.4, cropH = h*0.35;
+
+  raw.width = bw.width = cropW;
+  raw.height = bw.height = cropH;
+
+  const rctx = raw.getContext('2d');
+  const bctx = bw.getContext('2d');
+
+  // 🔹 Piirrä rajattu raakakuva
+  rctx.drawImage(video, cropX, cropY, cropW, cropH, 0, 0, cropW, cropH);
+
+  // 🔹 Threshold / kontrasti LCD-näytölle
+  const img = rctx.getImageData(0,0,cropW,cropH);
+  const d = img.data;
+  for(let i=0; i<d.length; i+=4){
+    const gray = d[i]*0.299 + d[i+1]*0.587 + d[i+2]*0.114;
+    const v = gray < 160 ? 255 : 0; // invert + matala kynnys
+    d[i]=d[i+1]=d[i+2]=v;
+  }
+  bctx.putImageData(img,0,0);
+
+  result.textContent = "OCR käynnissä…";
+
+  // 🔹 OCR vain numeroille, single line
+  try {
+    const { data: { text } } = await Tesseract.recognize(
+      bw,
+      'eng',
+      {
+        tessedit_char_whitelist: '0123456789',
+        classify_bln_numeric_mode: 1,
+        psm: 7
+      }
+    );
+    const out = text.replace(/\D/g,'').trim();
+    result.textContent = out ? "OCR: " + out : "Ei tunnistettu";
+  } catch(e) {
+    result.textContent = "OCR-virhe";
+    console.error(e);
+  }
+}
+
+// 🔹 Käynnistä kamera sivun latauksessa
+window.onload = startCamera;
 </script>
 
 </body>
+</html>
+
