@@ -1,91 +1,33 @@
-<!DOCTYPE html>
-<html lang="fi">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>LCD OCR Testi</title>
-<script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
-<style>
-body {
-  font-family: system-ui, sans-serif;
-  background:#111;
-  color:#eee;
-  text-align:center;
-}
-video, canvas {
-  width:90%;
-  max-width:400px;
-  border:2px solid #444;
-  margin:8px 0;
-}
-button {
-  padding:12px 18px;
-  font-size:16px;
-  margin:6px;
-}
-.result {
-  background:#222;
-  padding:10px;
-  margin-top:10px;
-}
-</style>
-</head>
-<body>
-
-<h2>LCD OCR – testiversio</h2>
-
-<video id="video" autoplay playsinline></video><br>
-
-<button onclick="toggleTorch()">🔦 Valo</button>
-<button onclick="scan()">📸 Skannaa tulos</button>
-
-<h3>Raakakuva</h3>
-<canvas id="raw"></canvas>
-
-<h3>OCR-kuva (threshold)</h3>
-<canvas id="bw"></canvas>
-
-<div class="result" id="text">Ei skannausta vielä</div>
-
-<script>
-const video = document.getElementById('video');
-const raw = document.getElementById('raw');
-const bw = document.getElementById('bw');
-const text = document.getElementById('text');
-let track, torchOn = false;
-
-navigator.mediaDevices.getUserMedia({
-  video: { facingMode: "environment" }
-}).then(stream => {
-  video.srcObject = stream;
-  track = stream.getVideoTracks()[0];
-});
-
-function toggleTorch() {
-  if (!track) return;
-  torchOn = !torchOn;
-  track.applyConstraints({
-    advanced: [{ torch: torchOn }]
-  });
-}
-
 function scan() {
   const w = video.videoWidth;
   const h = video.videoHeight;
-  raw.width = bw.width = w;
-  raw.height = bw.height = h;
+
+  // 🔲 Rajaus: keskialue (LCD)
+  const cropX = w * 0.3;
+  const cropY = h * 0.25;
+  const cropW = w * 0.4;
+  const cropH = h * 0.35;
+
+  raw.width = bw.width = cropW;
+  raw.height = bw.height = cropH;
 
   const rctx = raw.getContext('2d');
   const bctx = bw.getContext('2d');
 
-  rctx.drawImage(video, 0, 0, w, h);
+  // 📸 Piirrä rajattu raakakuva
+  rctx.drawImage(
+    video,
+    cropX, cropY, cropW, cropH,
+    0, 0, cropW, cropH
+  );
 
-  const img = rctx.getImageData(0, 0, w, h);
+  // ⚫ LCD-ystävällinen threshold
+  const img = rctx.getImageData(0, 0, cropW, cropH);
   const d = img.data;
 
   for (let i = 0; i < d.length; i += 4) {
     const gray = d[i]*0.299 + d[i+1]*0.587 + d[i+2]*0.114;
-    const v = gray > 140 ? 255 : 0; // THRESHOLD
+    const v = gray < 160 ? 255 : 0; // INVERT + matala kynnys
     d[i] = d[i+1] = d[i+2] = v;
   }
 
@@ -93,19 +35,12 @@ function scan() {
 
   text.textContent = "OCR käynnissä…";
 
+  // 🔢 OCR vain numeroille
   Tesseract.recognize(
     bw,
     'eng',
     {
       tessedit_char_whitelist: '0123456789',
-      classify_bln_numeric_mode: 1
+      classify_bln_numeric_mode: 1,
+      psm: 7
     }
-  ).then(res => {
-    const out = res.data.text.replace(/\s+/g,'').trim();
-    text.textContent = out ? `OCR: ${out}` : "Ei tunnistettu";
-  });
-}
-</script>
-
-</body>
-</html>
