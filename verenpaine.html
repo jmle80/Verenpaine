@@ -1,46 +1,29 @@
-function scan() {
-  const w = video.videoWidth;
-  const h = video.videoHeight;
+<body>
 
-  // 🔲 Rajaus: keskialue (LCD)
-  const cropX = w * 0.3;
-  const cropY = h * 0.25;
-  const cropW = w * 0.4;
-  const cropH = h * 0.35;
+<h2>LCD OCR – testiversio</h2>
 
-  raw.width = bw.width = cropW;
-  raw.height = bw.height = cropH;
+<video id="video" autoplay playsinline></video>
 
-  const rctx = raw.getContext('2d');
-  const bctx = bw.getContext('2d');
+<button onclick="toggleTorch()">🔦 Valo</button>
+<button onclick="scan()">📸 Skannaa tulos</button>
 
-  // 📸 Piirrä rajattu raakakuva
-  rctx.drawImage(
-    video,
-    cropX, cropY, cropW, cropH,
-    0, 0, cropW, cropH
-  );
+<canvas id="raw"></canvas>
+<canvas id="bw"></canvas>
 
-  // ⚫ LCD-ystävällinen threshold
-  const img = rctx.getImageData(0, 0, cropW, cropH);
-  const d = img.data;
+<div id="text">Ei skannausta vielä</div>
 
-  for (let i = 0; i < d.length; i += 4) {
-    const gray = d[i]*0.299 + d[i+1]*0.587 + d[i+2]*0.114;
-    const v = gray < 160 ? 255 : 0; // INVERT + matala kynnys
-    d[i] = d[i+1] = d[i+2] = v;
+<script>
+  // TÄNNE KAIKKI JAVASCRIPT
+  const video = document.getElementById('video');
+  const raw = document.getElementById('raw');
+  const bw = document.getElementById('bw');
+  const text = document.getElementById('text');
+
+  function scan() {
+    const w = video.videoWidth;
+    const h = video.videoHeight;
+    // ... koko scan()-koodi ...
   }
+</script>
 
-  bctx.putImageData(img, 0, 0);
-
-  text.textContent = "OCR käynnissä…";
-
-  // 🔢 OCR vain numeroille
-  Tesseract.recognize(
-    bw,
-    'eng',
-    {
-      tessedit_char_whitelist: '0123456789',
-      classify_bln_numeric_mode: 1,
-      psm: 7
-    }
+</body>
