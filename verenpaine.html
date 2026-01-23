@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Verenpainemittauspäiväkirja</title>
+<title>Verenpainemittaus</title>
 <style>
 body { font-family: Arial, sans-serif; margin: 10px; background: #f9f9f9; }
 h2 { text-align: center; }
@@ -42,4 +42,57 @@ th { background-color: #eee; }
 <table id="bpTable">
   <thead>
     <tr>
-      <th>Päivämäär
+      <th>Päivämäärä</th><th>Päivä</th><th>Työvuoro</th>
+      <th>Systolinen</th><th>Diastolinen</th><th>Leposyke</th><th>Huomautukset</th>
+    </tr>
+  </thead>
+  <tbody></tbody>
+</table>
+
+<button onclick="printReport()">Tulosta raportti</button>
+
+<div id="chartContainer">
+  <canvas id="bpChart"></canvas>
+</div>
+
+<script src="tesseract.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<script>
+// --- Tallennus localStorageen ---
+let measurements = JSON.parse(localStorage.getItem('bpData')) || [];
+
+function renderTable() {
+    const tbody = document.querySelector('#bpTable tbody');
+    tbody.innerHTML = '';
+    measurements.forEach(m => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+        <td>${m.date}</td>
+        <td>${m.day}</td>
+        <td>${m.shift}</td>
+        <td class="${m.systolic>140?'high':''}">${m.systolic}</td>
+        <td class="${m.diastolic>90?'high':''}">${m.diastolic}</td>
+        <td>${m.pulse}</td>
+        <td>${m.notes}</td>
+        `;
+        tbody.appendChild(tr);
+    });
+    renderChart();
+}
+
+function addMeasurement(systolic, diastolic, pulse, notes) {
+    const today = new Date();
+    const dateStr = today.toISOString().split('T')[0];
+    const dayStr = today.toLocaleDateString('fi-FI', { weekday: 'short' });
+
+    const newEntry = {
+        date: dateStr,
+        day: dayStr,
+        shift: document.getElementById('shift').value,
+        systolic: systolic,
+        diastolic: diastolic,
+        pulse: pulse,
+        notes: notes
+    };
+  
