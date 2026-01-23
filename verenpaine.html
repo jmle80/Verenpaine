@@ -1,125 +1,28 @@
-<!DOCTYPE html>
-<html lang="fi">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Verenpainemittari OCR</title>
-<script src="https://cdn.jsdelivr.net/npm/tesseract.js@4.1.1/dist/tesseract.min.js"></script>
-<style>
-body { font-family:sans-serif; text-align:center; margin:0; padding:10px; background:#f0f0f0; }
-video { width:100%; max-width:400px; border:1px solid #ccc; }
-canvas { display:none; }
-#result { font-size:1.3em; margin-top:10px; font-weight:bold; }
-button { margin:5px; padding:10px; font-size:1em; }
-</style>
-</head>
-<body>
-
-<h2>Verenpainemittari OCR</h2>
-
-<video id="video" autoplay playsinline muted></video>
-<canvas id="raw"></canvas>
-<canvas id="bw"></canvas>
-
-<div>
-  <button id="torchBtn">🔦 Valo</button>
-  <button id="scanBtn">📸 Skannaa mittari</button>
-</div>
-
-<div id="result">Ei skannausta vielä</div>
-
-<script>
-const video = document.getElementById('video');
-const raw = document.getElementById('raw');
-const bw = document.getElementById('bw');
-const result = document.getElementById('result');
-const scanBtn = document.getElementById('scanBtn');
-const torchBtn = document.getElementById('torchBtn');
-
-let stream, track;
-
-// 🔹 Käynnistä takakamera
-async function startCamera() {
-  try {
-    stream = await navigator.mediaDevices.getUserMedia({
-      video: { facingMode: { ideal: "environment" } },
-      audio: false
-    });
-    video.srcObject = stream;
-    track = stream.getVideoTracks()[0];
-    await video.play();
-  } catch(e) {
-    alert("Kamera ei käynnistynyt: " + e.message);
-  }
+plugins {
+    id 'com.android.application'
+    id 'kotlin-android'
 }
 
-// 🔹 Torch-nappi
-torchBtn.onclick = () => {
-  if(!track) return;
-  const cap = track.getCapabilities();
-  if(cap.torch){
-    track.applyConstraints({ advanced:[{torch:true}] });
-  } else alert("Torch ei tuettu tässä laitteessa");
-};
+android {
+    namespace 'com.example.bpreader'
+    compileSdk 34
 
-// 🔹 Napilla skannaus
-scanBtn.onclick = () => scan();
-
-async function scan() {
-  if(video.readyState < 2) return;
-
-  const w = video.videoWidth;
-  const h = video.videoHeight;
-
-  // 🔹 Kovakoodattu rajaus vain mittarin näytölle
-  const cropX = w*0.3;
-  const cropY = h*0.25;
-  const cropW = w*0.4;
-  const cropH = h*0.35;
-
-  raw.width = bw.width = cropW;
-  raw.height = bw.height = cropH;
-
-  const rctx = raw.getContext('2d');
-  const bctx = bw.getContext('2d');
-
-  // 🔹 Piirrä vain rajattu alue canvasille
-  rctx.drawImage(video, cropX, cropY, cropW, cropH, 0, 0, cropW, cropH);
-
-  // 🔹 Kontrasti + threshold
-  const img = rctx.getImageData(0,0,cropW,cropH);
-  const d = img.data;
-  for(let i=0;i<d.length;i+=4){
-    const gray = d[i]*0.299 + d[i+1]*0.587 + d[i+2]*0.114;
-    const v = gray > 180 ? 0 : 255; // valkoiset numerot, musta tausta
-    d[i]=d[i+1]=d[i+2]=v;
-  }
-  bctx.putImageData(img,0,0);
-
-  result.textContent = "OCR käynnissä…";
-
-  // 🔹 OCR vain rajatusta alueesta
-  try {
-    const { data: { text } } = await Tesseract.recognize(
-      bw,
-      'eng',
-      {
-        tessedit_char_whitelist: '0123456789',
-        classify_bln_numeric_mode: 1,
-        psm: 7
-      }
-    );
-    const out = text.replace(/\D/g,'').trim();
-    result.textContent = out ? "OCR: "+out : "Ei tunnistettu";
-  } catch(e){
-    result.textContent = "OCR-virhe";
-    console.error(e);
-  }
+    defaultConfig {
+        applicationId "com.example.bpreader"
+        minSdk 24
+        targetSdk 34
+        versionCode 1
+        versionName "1.0"
+    }
 }
 
-// 🔹 Käynnistä kamera sivun latauksessa
-window.onload = startCamera;
-</script>
-
-</body>
-</html>
+dependencies {
+    implementation "androidx.core:core-ktx:1.12.0"
+    implementation "androidx.appcompat:appcompat:1.7.0"
+    implementation "androidx.camera:camera-core:1.3.0"
+    implementation "androidx.camera:camera-camera2:1.3.0"
+    implementation "androidx.camera:camera-lifecycle:1.3.0"
+    implementation "androidx.camera:camera-view:1.3.0"
+    implementation 'org.opencv:opencv-android:4.7.0'
+    implementation 'com.googlecode.tesseract.android:tess-two:9.1.0'
+}
