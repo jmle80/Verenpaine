@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Verenpainemittaus - LCD & Torch</title>
+<title>Verenpainemittaus - Master Version</title>
 <style>
 body { font-family: Arial, sans-serif; margin: 10px; background: #f9f9f9; }
 h2 { text-align: center; }
@@ -24,7 +24,7 @@ th { background-color: #eee; }
 </head>
 <body>
 
-<h2>Verenpainemittauspäiväkirja - LCD & Torch</h2>
+<h2>Verenpainemittauspäiväkirja - Master Version</h2>
 
 <form id="bpForm">
   <label>Työvuoro:
@@ -40,7 +40,7 @@ th { background-color: #eee; }
 <hr>
 <h3>Live kamera</h3>
 <div id="videoContainer">
-  <video id="videoElement" autoplay></video>
+  <video id="videoElement" autoplay playsinline></video>
   <div id="overlay"></div>
   <small>Pidä mittarin näyttö selkeästi kameran edessä</small>
 </div>
@@ -65,7 +65,8 @@ th { background-color: #eee; }
   <canvas id="bpChart"></canvas>
 </div>
 
-<script src="tesseract.min.js"></script>
+<!-- Tesseract.js -->
+<script src="https://cdn.jsdelivr.net/npm/tesseract.js@4.0.2/dist/tesseract.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
 <script>
@@ -73,24 +74,19 @@ let measurements = JSON.parse(localStorage.getItem('bpData')) || [];
 const video = document.getElementById('videoElement');
 const overlay = document.getElementById('overlay');
 
-// --- Taulukko ja graafi ---
+// --- Taulukko & graafi ---
 function renderTable() {
     const tbody = document.querySelector('#bpTable tbody');
     tbody.innerHTML = '';
     measurements.forEach(m => {
         const tr = document.createElement('tr');
 
-        // Systolinen värit
         let sysClass = '';
         if(m.systolic>140) sysClass='high';
         if(m.systolic<90) sysClass='low';
-
-        // Diastolinen värit
         let diaClass = '';
         if(m.diastolic>90) diaClass='high';
         if(m.diastolic<60) diaClass='low';
-
-        // Pulssi värit
         let pulseClass = '';
         if(m.pulse>100) pulseClass='high';
         if(m.pulse<50) pulseClass='low';
@@ -98,3 +94,114 @@ function renderTable() {
         tr.innerHTML = `
         <td>${m.date}</td>
         <td>${m.day}</td>
+        <td>${m.shift}</td>
+        <td class="${sysClass}">${m.systolic}</td>
+        <td class="${diaClass}">${m.diastolic}</td>
+        <td class="${pulseClass}">${m.pulse}</td>
+        <td>${m.notes}</td>
+        `;
+        tbody.appendChild(tr);
+    });
+    renderChart();
+}
+
+function addMeasurement(systolic, diastolic, pulse, notes) {
+    const today = new Date();
+    const dateStr = today.toISOString().split('T')[0];
+    const dayStr = today.toLocaleDateString('fi-FI', { weekday: 'short' });
+    const newEntry = { date: dateStr, day: dayStr, shift: document.getElementById('shift').value, systolic, diastolic, pulse, notes };
+    measurements.push(newEntry);
+    localStorage.setItem('bpData', JSON.stringify(measurements));
+    renderTable();
+}
+
+function printReport() {
+    const printContent = document.getElementById('bpTable').outerHTML;
+    const w = window.open('', '', 'width=800,height=600');
+    w.document.write('<html><head><title>Raportti</title></head><body>');
+    w.document.write('<h2>Verenpainemittausraportti</h2>');
+    w.document.write(printContent);
+    w.document.write('</body></html>');
+    w.document.close();
+    w.print();
+}
+
+// --- Chart.js ---
+let bpChart;
+function renderChart() {
+    const ctx = document.getElementById('bpChart').getContext('2d');
+    const labels = measurements.map(m => m.date + ' ' + m.day);
+    const systolicData = measurements.map(m => m.systolic);
+    const diastolicData = measurements.map(m => m.diastolic);
+    const pulseData = measurements.map(m => m.pulse);
+    if(bpChart) bpChart.destroy();
+    bpChart = new Chart(ctx, {
+        type:'line',
+        data:{ labels, datasets:[
+            { label:'Systolinen', data:systolicData, borderColor:'red', fill:false },
+            { label:'Diastolinen', data:diastolicData, borderColor:'blue', fill:false },
+            { label:'Leposyke', data:pulseData, borderColor:'green', fill:false }
+        ]},
+        options:{ responsive:true, plugins:{ legend:{ position:'top' } } }
+    });
+}
+
+// --- Kamera ---
+async function startCamera() {
+    try{
+        const stream = await navigator.mediaDevices.getUserMedia({video:{facingMode:"environment"}});
+        video.srcObject = stream;
+    } catch(err){
+        alert("Kamera ei aukea: "+err.message);
+    }
+}
+startCamera();
+
+const canvas = document.createElement('canvas');
+const ctx = canvas.getContext('2d');
+
+// --- Torch ---
+document.getElementById('torchButton').addEventListener('click', async ()=>{
+    const stream = video.srcObject;
+    if(!stream){ alert("Kamera ei ole käytössä."); return; }
+    const track = stream.getVideoTracks()[0];
+    if(track.getCapabilities().torch){
+        try { await track.applyConstraints({advanced:[{torch:true}]}); alert("Taskulamppu yritetty sytyttää."); }
+        catch(e){ alert("Torch epäonnistui: "+e.message); }
+    } else { alert("Laite/selain ei tue torchia. Käytä puhelimen taskulamppua."); }
+});
+
+// --- Capture & OCR ---
+document.getElementById('captureButton').addEventListener('click', async ()=>{
+    if(video.readyState<2) return alert("Kamera ei valmis");
+    canvas.width=600; canvas.height=100;
+    const sx=video.videoWidth*0.1, sy=video.videoHeight*0.4;
+    const sw=video.videoWidth*0.8, sh=video.videoHeight*0.15;
+    ctx.drawImage(video,sx,sy,sw,sh,0,0,canvas.width,canvas.height);
+
+    // Kontrasti musta->valkoinen
+    const imgData=ctx.getImageData(0,0,canvas.width,canvas.height);
+    const data=imgData.data;
+    for(let i=0;i<data.length;i+=4){
+        const gray=0.3*data[i]+0.59*data[i+1]+0.11*data[i+2];
+        const val=gray<120?255:0;
+        data[i]=data[i+1]=data[i+2]=val;
+    }
+    ctx.putImageData(imgData,0,0);
+
+    canvas.toBlob(async blob=>{
+        const {data:{text}} = await Tesseract.recognize(blob,'eng',{tessedit_char_whitelist:'0123456789'});
+        const numbers = text.match(/\d+/g);
+        if(numbers && numbers.length>=3){
+            const systolic=parseInt(numbers[0]), diastolic=parseInt(numbers[1]), pulse=parseInt(numbers[2]);
+            overlay.innerText=`Systolinen: ${systolic}\nDiastolinen: ${diastolic}\nLeposyke: ${pulse}`;
+            addMeasurement(systolic,diastolic,pulse,document.getElementById('notes').value||'');
+            document.getElementById('notes').value='';
+        } else overlay.innerText="Numerot eivät tunnistuneet. Tarkista valo ja kamera-asento.";
+    });
+});
+
+renderTable();
+</script>
+</body>
+</html>
