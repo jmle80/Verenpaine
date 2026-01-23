@@ -1,196 +1,41 @@
 <!DOCTYPE html>
 <html lang="fi">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
-<title>Verenpainemittaus</title>
-<link rel="manifest" href="manifest.json">
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<style>
-  /* Body ja perusasetukset */
-  body {
-    font-family: Arial, sans-serif;
-    text-align: center;
-    padding: 15px;
-    margin: 0;
-    background-color: #f5f5f5;
-  }
-
-  h1 {
-    margin-bottom: 15px;
-    font-size: 1.8em;
-  }
-
-  /* Nappi */
-  #scanButton {
-    padding: 20px 40px;
-    font-size: 1.5em;
-    cursor: pointer;
-    border: none;
-    border-radius: 12px;
-    background-color: #4CAF50;
-    color: white;
-    transition: background-color 0.2s;
-    margin-bottom: 15px;
-    width: 80%;
-    max-width: 300px;
-  }
-
-  #scanButton:active {
-    background-color: #45a049;
-  }
-
-  /* LED-valo */
-  #led {
-    margin: 15px auto;
-    width: 50px;
-    height: 50px;
-    background-color: grey;
-    border-radius: 50%;
-    display: block;
-    transition: background-color 0.2s;
-  }
-
-  /* Taulukko */
-  table {
-    margin: 20px auto;
-    border-collapse: collapse;
-    width: 95%;
-    max-width: 600px;
-    background-color: white;
-    font-size: 0.9em;
-  }
-
-  th, td {
-    border: 1px solid #ccc;
-    padding: 8px;
-    text-align: center;
-  }
-
-  th {
-    background-color: #eee;
-  }
-
-  /* Graafi */
-  #chartContainer {
-    width: 95%;
-    max-width: 600px;
-    margin: 25px auto;
-  }
-
-  @media (max-width: 400px) {
-    #scanButton {
-      font-size: 1.3em;
-      padding: 18px 25px;
-    }
-  }
-</style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <title>Verenpaine Päiväkirja</title>
+  <meta name="theme-color" content="#000000">
+  <link rel="manifest" href="/verenpaine/manifest.json">
+  <link rel="apple-touch-icon" href="/verenpaine/icon-192.png">
+  <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script> <!-- OCR -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script> <!-- Graafit -->
+  <base href="/verenpaine/">
+  <style>
+    body { margin: 0; padding: 0; font-family: sans-serif; background: #121212; color: #fff; height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
+    #video { width: 100%; height: auto; max-height: 40vh; background: #000; }
+    #canvas { display: none; }
+    button { padding: 1.2rem 2rem; margin: 0.5rem; background: #6200ea; color: white; border: none; border-radius: 8px; font-size: 1.4rem; touch-action: manipulation; min-width: 44px; min-height: 44px; }
+    #history { margin: 1rem; overflow-y: auto; flex: 1; }
+    #chart-container { width: 100%; height: 300px; margin: 1rem 0; }
+    select, textarea, input { padding: 0.8rem; margin: 0.5rem; background: #333; color: white; border: 1px solid #6200ea; border-radius: 8px; font-size: 1.2rem; width: calc(100% - 1rem); }
+    #result { text-align: center; margin: 1rem; font-size: 1.5rem; }
+    .controls { display: flex; flex-wrap: wrap; justify-content: center; align-items: center; }
+    .history-item { margin-bottom: 1rem; padding: 1rem; background: #1e1e1e; border-radius: 8px; }
+    .notes { display: none; margin-top: 0.5rem; font-style: italic; color: #bbb; }
+    .show-notes { display: block; }
+    /* Modal for notes */
+    #notesModal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); justify-content: center; align-items: center; flex-direction: column; z-index: 10; }
+    #notesModal textarea { height: 150px; }
+    @media (orientation: landscape) { #video { max-height: 100vh; } }
+  </style>
 </head>
 <body>
-
-<h1>Verenpainemittaus</h1>
-<button id="scanButton">Skannaa tulos</button>
-<div id="led"></div>
-
-<table id="resultsTable">
-  <thead>
-    <tr>
-      <th>Päivämäärä</th>
-      <th>Aika</th>
-      <th>Systolinen</th>
-      <th>Diastolinen</th>
-      <th>Sydänlyönti</th>
-    </tr>
-  </thead>
-  <tbody></tbody>
-</table>
-
-<div id="chartContainer">
-  <canvas id="bpChart"></canvas>
-</div>
-
-<script>
-  // PWA Service Worker
-  if ('serviceWorker' in navigator) {
-    navigator.serviceWorker.register('sw.js').then(() => console.log('Service Worker rekisteröity'));
-  }
-
-  const scanButton = document.getElementById('scanButton');
-  const led = document.getElementById('led');
-  const resultsTable = document.getElementById('resultsTable').querySelector('tbody');
-  const ctx = document.getElementById('bpChart').getContext('2d');
-
-  let measurements = JSON.parse(localStorage.getItem('measurements')) || [];
-
-  function displayMeasurements() {
-    resultsTable.innerHTML = '';
-    measurements.forEach(m => {
-      const row = document.createElement('tr');
-      row.innerHTML = `<td>${m.date}</td><td>${m.time}</td><td>${m.systolic}</td><td>${m.diastolic}</td><td>${m.bpm}</td>`;
-      resultsTable.appendChild(row);
-    });
-    updateChart();
-  }
-
-  function simulateMeasurement() {
-    return {
-      systolic: Math.floor(Math.random() * 40) + 110,
-      diastolic: Math.floor(Math.random() * 30) + 70,
-      bpm: Math.floor(Math.random() * 40) + 60
-    };
-  }
-
-  function getDateTime() {
-    const now = new Date();
-    return { date: now.toLocaleDateString('fi-FI'), time: now.toLocaleTimeString('fi-FI', {hour:'2-digit',minute:'2-digit'}) };
-  }
-
-  async function scan() {
-    // Simuloidaan 2 sekunnin mittaus
-    await new Promise(r => setTimeout(r, 2000));
-  }
-
-  // Chart.js graafi
-  const bpChart = new Chart(ctx, {
-    type: 'line',
-    data: {
-      labels: [],
-      datasets: [
-        { label: 'Systolinen', data: [], borderColor: 'red', fill: false, tension:0.2 },
-        { label: 'Diastolinen', data: [], borderColor: 'blue', fill: false, tension:0.2 }
-      ]
-    },
-    options: {
-      responsive: true,
-      plugins: { legend: { position: 'top' } },
-      scales: {
-        y: { beginAtZero: false }
-      }
-    }
-  });
-
-  function updateChart() {
-    bpChart.data.labels = measurements.map(m => m.date + ' ' + m.time);
-    bpChart.data.datasets[0].data = measurements.map(m => m.systolic);
-    bpChart.data.datasets[1].data = measurements.map(m => m.diastolic);
-    bpChart.update();
-  }
-
-  scanButton.addEventListener('click', async () => {
-    led.style.backgroundColor = 'green';
-    await new Promise(r => setTimeout(r, 200));
-    await scan();
-    const { date, time } = getDateTime();
-    const { systolic, diastolic, bpm } = simulateMeasurement();
-    const measurement = { date, time, systolic, diastolic, bpm };
-    measurements.push(measurement);
-    localStorage.setItem('measurements', JSON.stringify(measurements));
-    displayMeasurements();
-    led.style.backgroundColor = 'grey';
-  });
-
-  displayMeasurements();
-</script>
-
-</body>
-</html>
+  <h1 style="text-align: center; margin: 1rem; font-size: 2rem;">Verenpaine Päiväkirja</h1>
+  
+  <video id="video" autoplay playsinline></video>
+  <canvas id="canvas"></canvas>
+  
+  <div class="controls">
+    <button onclick="startCamera()">Avaa Kamera &
