@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="fi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Verenpainemittauspäiväkirja</title>
+<style>
+body { font-family: Arial, sans-serif; margin: 10px; background: #f9f9f9; }
+h2 { text-align: center; }
+input, select, button { padding: 8px; margin: 5px 0; width: 100%; box-sizing: border-box; }
+table { width: 100%; border-collapse: collapse; margin-top: 15px; }
+th, td { border: 1px solid #aaa; padding: 5px; text-align: center; }
+th { background-color: #eee; }
+.high { background-color: #f88; }
+#videoContainer { text-align:center; margin:10px 0; }
+#videoElement { width:100%; max-width:400px; border:1px solid #aaa; }
+</style>
+</head>
+<body>
+
+<h2>Verenpainemittauspäiväkirja</h2>
+
+<form id="bpForm">
+  <label>Työvuoro:
+    <select id="shift">
+      <option value="Aamu">Aamu</option>
+      <option value="Yö">Yö</option>
+      <option value="Vapaa">Vapaa</option>
+    </select>
+  </label>
+  <label>Huomautukset (valinnainen):<input type="text" id="notes"></label>
+</form>
+
+<hr>
+<h3>Live OCR kamerasta</h3>
+<div id="videoContainer">
+  <video id="videoElement" autoplay></video><br>
+  <small>Pidä mittarin näyttö selkeästi kameran edessä</small>
+</div>
+
+<h3>Mittaukset</h3>
+<table id="bpTable">
+  <thead>
+    <tr>
+      <th>Päivämäär
