@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Keto Ostoslista</title>
+    <title>Keto Ostoslista v1.1</title>
     <style>
         body {
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
@@ -11,9 +11,10 @@
             margin: 0;
             padding: 20px;
             color: #333;
+            padding-bottom: 80px; /* Tilaa alapalkille/napille */
         }
         .version-tag {
-            color: #d9534f; /* Punertava huomioväri */
+            color: #d9534f;
             font-weight: bold;
             font-size: 0.9em;
             margin-bottom: 10px;
@@ -40,15 +41,11 @@
             justify-content: space-between;
             margin-bottom: 5px;
         }
-        .total-price {
-            font-weight: bold;
-            font-size: 1.2em;
-        }
         .category-header {
             font-size: 1.1em;
             font-weight: bold;
             color: #555;
-            margin-top: 20px;
+            margin-top: 25px;
             margin-bottom: 10px;
             border-bottom: 2px solid #ddd;
             padding-bottom: 5px;
@@ -61,20 +58,21 @@
         .item-row {
             background: #fff;
             margin-bottom: 8px;
-            padding: 10px;
+            padding: 12px; /* Hieman isompi tila sormelle */
             border-radius: 6px;
             display: flex;
             align-items: center;
             box-shadow: 0 1px 3px rgba(0,0,0,0.05);
-            transition: background 0.2s;
             cursor: pointer;
+            user-select: none; /* Estää tekstin maalauksen tuplaklikatessa */
         }
         .item-row:active {
-            background-color: #eef;
+            background-color: #f0f0f0;
         }
         .item-row input[type="checkbox"] {
             transform: scale(1.5);
             margin-right: 15px;
+            cursor: pointer;
         }
         .item-details {
             flex-grow: 1;
@@ -82,16 +80,17 @@
         .item-name {
             display: block;
             font-weight: 500;
+            font-size: 1.05em;
         }
         .item-price {
             display: block;
-            font-size: 0.85em;
+            font-size: 0.9em;
             color: #777;
         }
-        /* Kun tuote on valittu */
+        /* Valittu tuote */
         .item-row.checked {
             background-color: #e8f5e9;
-            opacity: 0.7;
+            opacity: 0.6;
         }
         .item-row.checked .item-name {
             text-decoration: line-through;
@@ -105,9 +104,11 @@
             color: white;
             border: none;
             border-radius: 8px;
-            font-size: 1em;
-            margin-top: 30px;
+            font-size: 1.1em;
+            font-weight: bold;
+            margin-top: 40px;
             cursor: pointer;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
         }
         .btn-reset:hover {
             background-color: #a93226;
@@ -116,7 +117,7 @@
 </head>
 <body>
 
-    <span class="version-tag">Versio 1.0</span>
+    <span class="version-tag">Versio 1.1 (Korjattu)</span>
 
     <div class="summary-box">
         <div class="summary-row">
@@ -132,12 +133,13 @@
     <h1>Ketogeeninen viikko</h1>
 
     <div id="shopping-list-container">
-        </div>
+        <p style="color: #999;">Ladataan listaa...</p>
+    </div>
 
-    <button class="btn-reset" onclick="resetList()">Tyhjennä koko lista</button>
+    <button class="btn-reset" id="reset-button">Tyhjennä koko lista</button>
 
 <script>
-    // Tuotedata
+    // --- DATAN MÄÄRITTELY ---
     const shoppingData = [
         { category: "Liha, Kala & Kana", items: [
             { name: "Naudan jauheliha 20% (800g)", price: 9.80 },
@@ -180,41 +182,51 @@
 
     const estimatedTotal = 108.00;
 
-    // Alustetaan sivu
-    function init() {
-        const container = document.getElementById('shopping-list-container');
+    // --- PÄÄLOGIIKKA ---
+    
+    // Odotetaan, että sivu on varmasti latautunut
+    document.addEventListener('DOMContentLoaded', () => {
+        initList();
         
+        // Kytketään tyhjennysnappi
+        document.getElementById('reset-button').addEventListener('click', resetList);
+    });
+
+    function initList() {
+        const container = document.getElementById('shopping-list-container');
+        container.innerHTML = ""; // Tyhjennetään "Ladataan..." teksti
+
         shoppingData.forEach((group, groupIndex) => {
-            // Luo kategoriaotsikko
+            // Otsikko
             const header = document.createElement('div');
             header.className = 'category-header';
             header.textContent = group.category;
             container.appendChild(header);
 
-            // Luo lista
-            const list = document.createElement('ul');
-            list.className = 'item-list';
+            // Listaelementti
+            const ul = document.createElement('ul');
+            ul.className = 'item-list';
 
             group.items.forEach((item, itemIndex) => {
+                const uniqueId = `cb-${groupIndex}-${itemIndex}`;
+                
                 const li = document.createElement('li');
                 li.className = 'item-row';
                 li.id = `row-${groupIndex}-${itemIndex}`;
-                
-                // Checkboxin ja tekstin kääre
-                li.onclick = (e) => {
-                    // Estetään tuplaklikkaus jos painetaan suoraan checkboxia
-                    if (e.target.type !== 'checkbox') {
-                        toggleCheck(groupIndex, itemIndex);
-                    }
-                };
 
+                // Luodaan checkbox
                 const checkbox = document.createElement('input');
                 checkbox.type = 'checkbox';
-                checkbox.id = `cb-${groupIndex}-${itemIndex}`;
-                checkbox.onchange = () => toggleCheck(groupIndex, itemIndex);
+                checkbox.id = uniqueId;
+                checkbox.dataset.group = groupIndex;
+                checkbox.dataset.item = itemIndex;
 
+                // Luodaan tekstiosio
                 const details = document.createElement('div');
                 details.className = 'item-details';
                 details.innerHTML = `
                     <span class="item-name">${item.name}</span>
-                    <span class="item-price">n. ${item.price.toFixed(2)}
+                    <span class="item-price">n. ${item.price.toFixed(2)} €</span>
+                `;
+
+                // Tapahtumankuuntelijat (
