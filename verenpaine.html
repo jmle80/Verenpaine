@@ -3,121 +3,31 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Keto Ostoslista v1.1</title>
+    <title>Keto Ostoslista v1.2</title>
     <style>
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-            background-color: #f4f4f9;
-            margin: 0;
-            padding: 20px;
-            color: #333;
-            padding-bottom: 80px; /* Tilaa alapalkille/napille */
-        }
-        .version-tag {
-            color: #d9534f;
-            font-weight: bold;
-            font-size: 0.9em;
-            margin-bottom: 10px;
-            display: block;
-        }
-        h1 {
-            color: #2c3e50;
-            font-size: 1.5em;
-            margin-top: 0;
-        }
-        .summary-box {
-            background: #fff;
-            padding: 15px;
-            border-radius: 8px;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-            margin-bottom: 20px;
-            position: sticky;
-            top: 0;
-            z-index: 100;
-            border-left: 5px solid #27ae60;
-        }
-        .summary-row {
-            display: flex;
-            justify-content: space-between;
-            margin-bottom: 5px;
-        }
-        .category-header {
-            font-size: 1.1em;
-            font-weight: bold;
-            color: #555;
-            margin-top: 25px;
-            margin-bottom: 10px;
-            border-bottom: 2px solid #ddd;
-            padding-bottom: 5px;
-        }
-        .item-list {
-            list-style: none;
-            padding: 0;
-            margin: 0;
-        }
-        .item-row {
-            background: #fff;
-            margin-bottom: 8px;
-            padding: 12px; /* Hieman isompi tila sormelle */
-            border-radius: 6px;
-            display: flex;
-            align-items: center;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
-            cursor: pointer;
-            user-select: none; /* Estää tekstin maalauksen tuplaklikatessa */
-        }
-        .item-row:active {
-            background-color: #f0f0f0;
-        }
-        .item-row input[type="checkbox"] {
-            transform: scale(1.5);
-            margin-right: 15px;
-            cursor: pointer;
-        }
-        .item-details {
-            flex-grow: 1;
-        }
-        .item-name {
-            display: block;
-            font-weight: 500;
-            font-size: 1.05em;
-        }
-        .item-price {
-            display: block;
-            font-size: 0.9em;
-            color: #777;
-        }
-        /* Valittu tuote */
-        .item-row.checked {
-            background-color: #e8f5e9;
-            opacity: 0.6;
-        }
-        .item-row.checked .item-name {
-            text-decoration: line-through;
-            color: #888;
-        }
-        .btn-reset {
-            display: block;
-            width: 100%;
-            padding: 15px;
-            background-color: #c0392b;
-            color: white;
-            border: none;
-            border-radius: 8px;
-            font-size: 1.1em;
-            font-weight: bold;
-            margin-top: 40px;
-            cursor: pointer;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-        }
-        .btn-reset:hover {
-            background-color: #a93226;
-        }
+        body { font-family: sans-serif; background-color: #f4f4f9; margin: 0; padding: 20px; color: #333; padding-bottom: 80px; }
+        .version-tag { color: #d9534f; font-weight: bold; margin-bottom: 10px; display: block; }
+        .summary-box { background: #fff; padding: 15px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); margin-bottom: 20px; border-left: 5px solid #27ae60; position: sticky; top: 0; z-index: 100; }
+        .summary-row { display: flex; justify-content: space-between; margin-bottom: 5px; }
+        .category-header { font-size: 1.1em; font-weight: bold; margin-top: 25px; border-bottom: 2px solid #ddd; padding-bottom: 5px; }
+        .item-list { list-style: none; padding: 0; margin: 0; }
+        .item-row { background: #fff; margin-bottom: 8px; padding: 12px; border-radius: 6px; display: flex; align-items: center; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
+        .item-row input { transform: scale(1.5); margin-right: 15px; }
+        .checked { background-color: #e8f5e9; opacity: 0.6; }
+        .checked .item-name { text-decoration: line-through; color: #888; }
+        .item-name { display: block; font-weight: 500; }
+        .item-price { display: block; font-size: 0.9em; color: #777; }
+        .btn-reset { display: block; width: 100%; padding: 15px; background-color: #c0392b; color: white; border: none; border-radius: 8px; font-size: 1.1em; margin-top: 40px; }
+        
+        /* Virheilmoituksen tyyli */
+        #error-log { color: red; background: #ffe6e6; padding: 15px; border: 2px solid red; border-radius: 8px; margin-bottom: 20px; display: none; }
     </style>
 </head>
 <body>
 
-    <span class="version-tag">Versio 1.1 (Korjattu)</span>
+    <span class="version-tag">Versio 1.2 (Debug)</span>
+
+    <div id="error-log"></div>
 
     <div class="summary-box">
         <div class="summary-row">
@@ -125,7 +35,7 @@
             <span id="cart-total" style="color: #27ae60; font-weight:bold;">0.00 €</span>
         </div>
         <div class="summary-row">
-            <span>Budjetti jäljellä (arvio 108€):</span>
+            <span>Budjetti:</span>
             <span id="budget-left">108.00 €</span>
         </div>
     </div>
@@ -133,100 +43,155 @@
     <h1>Ketogeeninen viikko</h1>
 
     <div id="shopping-list-container">
-        <p style="color: #999;">Ladataan listaa...</p>
+        <p>Ladataan...</p>
     </div>
 
-    <button class="btn-reset" id="reset-button">Tyhjennä koko lista</button>
+    <button class="btn-reset" onclick="resetList()">Tyhjennä lista</button>
 
 <script>
-    // --- DATAN MÄÄRITTELY ---
-    const shoppingData = [
-        { category: "Liha, Kala & Kana", items: [
-            { name: "Naudan jauheliha 20% (800g)", price: 9.80 },
-            { name: "Kirjolohifilee (n. 400g)", price: 7.60 },
-            { name: "Broilerin koipireidet (1.1kg)", price: 3.60 },
-            { name: "Broilerin filee/paisti (400g)", price: 5.50 },
-            { name: "Seiti, pakaste (400g)", price: 3.35 },
-            { name: "Pekoni (140g)", price: 2.00 },
-            { name: "Katkaravut, pakaste (180g)", price: 4.50 },
-            { name: "Tonnikala öljyssä", price: 1.60 }
-        ]},
-        { category: "Maitotuotteet & Munat", items: [
-            { name: "Kananmunat (15kpl)", price: 3.60 },
-            { name: "Voi (500g)", price: 3.85 },
-            { name: "Kuohukerma (5dl)", price: 3.40 },
-            { name: "Turkkilainen jogurtti (1kg)", price: 3.90 },
-            { name: "Kermajuusto (1kg)", price: 6.00 },
-            { name: "Feta/Salaattijuusto", price: 3.00 },
-            { name: "Vuohenjuusto", price: 4.50 },
-            { name: "Creme Fraiche (2prk)", price: 3.00 }
-        ]},
-        { category: "Hedelmät & Vihannekset", items: [
-            { name: "Avokadot (pussi)", price: 4.70 },
-            { name: "Salaattisekoitus (2pss)", price: 4.00 },
-            { name: "Kurkku", price: 1.50 },
-            { name: "Kukkakaali & Parsakaali", price: 5.00 },
-            { name: "Vihreät pavut (pakaste)", price: 1.50 },
-            { name: "Sienet", price: 2.50 },
-            { name: "Pinaatti", price: 2.00 },
-            { name: "Marjat (pakaste)", price: 3.00 },
-            { name: "Sitruuna & Valkosipuli", price: 1.50 },
-            { name: "Tomaattimurska/Salsa", price: 2.00 }
-        ]},
-        { category: "Kuivat & Muut", items: [
-            { name: "Mantelijauho (200g)", price: 4.50 },
-            { name: "Pähkinät", price: 4.00 },
-            { name: "Tacomauste", price: 1.50 }
-        ]}
-    ];
+    // Käärimme kaiken try-catch lohkoon virheiden nappaamiseksi
+    try {
+        const shoppingData = [
+            { category: "Liha, Kala & Kana", items: [
+                { name: "Naudan jauheliha 20% (800g)", price: 9.80 },
+                { name: "Kirjolohifilee (n. 400g)", price: 7.60 },
+                { name: "Broilerin koipireidet (1.1kg)", price: 3.60 },
+                { name: "Broilerin filee/paisti (400g)", price: 5.50 },
+                { name: "Seiti, pakaste (400g)", price: 3.35 },
+                { name: "Pekoni (140g)", price: 2.00 },
+                { name: "Katkaravut, pakaste (180g)", price: 4.50 },
+                { name: "Tonnikala öljyssä", price: 1.60 }
+            ]},
+            { category: "Maitotuotteet & Munat", items: [
+                { name: "Kananmunat (15kpl)", price: 3.60 },
+                { name: "Voi (500g)", price: 3.85 },
+                { name: "Kuohukerma (5dl)", price: 3.40 },
+                { name: "Turkkilainen jogurtti (1kg)", price: 3.90 },
+                { name: "Kermajuusto (1kg)", price: 6.00 },
+                { name: "Feta/Salaattijuusto", price: 3.00 },
+                { name: "Vuohenjuusto", price: 4.50 },
+                { name: "Creme Fraiche (2prk)", price: 3.00 }
+            ]},
+            { category: "Hedelmät & Vihannekset", items: [
+                { name: "Avokadot (pussi)", price: 4.70 },
+                { name: "Salaattisekoitus (2pss)", price: 4.00 },
+                { name: "Kurkku", price: 1.50 },
+                { name: "Kukkakaali & Parsakaali", price: 5.00 },
+                { name: "Vihreät pavut (pakaste)", price: 1.50 },
+                { name: "Sienet", price: 2.50 },
+                { name: "Pinaatti", price: 2.00 },
+                { name: "Marjat (pakaste)", price: 3.00 },
+                { name: "Sitruuna & Valkosipuli", price: 1.50 },
+                { name: "Tomaattimurska/Salsa", price: 2.00 }
+            ]},
+            { category: "Kuivat & Muut", items: [
+                { name: "Mantelijauho (200g)", price: 4.50 },
+                { name: "Pähkinät", price: 4.00 },
+                { name: "Tacomauste", price: 1.50 }
+            ]}
+        ];
 
-    const estimatedTotal = 108.00;
-
-    // --- PÄÄLOGIIKKA ---
-    
-    // Odotetaan, että sivu on varmasti latautunut
-    document.addEventListener('DOMContentLoaded', () => {
-        initList();
-        
-        // Kytketään tyhjennysnappi
-        document.getElementById('reset-button').addEventListener('click', resetList);
-    });
-
-    function initList() {
         const container = document.getElementById('shopping-list-container');
-        container.innerHTML = ""; // Tyhjennetään "Ladataan..." teksti
+        container.innerHTML = ""; // Tyhjennä "Ladataan..." teksti
 
-        shoppingData.forEach((group, groupIndex) => {
-            // Otsikko
-            const header = document.createElement('div');
-            header.className = 'category-header';
-            header.textContent = group.category;
-            container.appendChild(header);
+        // Luodaan lista
+        shoppingData.forEach((group, gIndex) => {
+            const h = document.createElement('div');
+            h.className = 'category-header';
+            h.innerText = group.category;
+            container.appendChild(h);
 
-            // Listaelementti
             const ul = document.createElement('ul');
             ul.className = 'item-list';
 
-            group.items.forEach((item, itemIndex) => {
-                const uniqueId = `cb-${groupIndex}-${itemIndex}`;
-                
+            group.items.forEach((item, iIndex) => {
                 const li = document.createElement('li');
                 li.className = 'item-row';
-                li.id = `row-${groupIndex}-${itemIndex}`;
+                
+                // Checkbox
+                const cb = document.createElement('input');
+                cb.type = 'checkbox';
+                cb.id = 'cb-' + gIndex + '-' + iIndex;
+                cb.onclick = function() { updateTotal(); saveState(); };
 
-                // Luodaan checkbox
-                const checkbox = document.createElement('input');
-                checkbox.type = 'checkbox';
-                checkbox.id = uniqueId;
-                checkbox.dataset.group = groupIndex;
-                checkbox.dataset.item = itemIndex;
+                // Tekstit
+                const span = document.createElement('div');
+                span.className = 'item-details';
+                span.innerHTML = '<span class="item-name">' + item.name + '</span>' +
+                                 '<span class="item-price">n. ' + item.price.toFixed(2) + ' €</span>';
+                
+                // Riviä klikkaamalla myös valitaan
+                li.onclick = function(e) {
+                    if (e.target !== cb) {
+                        cb.checked = !cb.checked;
+                        updateTotal();
+                        saveState();
+                    }
+                };
 
-                // Luodaan tekstiosio
-                const details = document.createElement('div');
-                details.className = 'item-details';
-                details.innerHTML = `
-                    <span class="item-name">${item.name}</span>
-                    <span class="item-price">n. ${item.price.toFixed(2)} €</span>
-                `;
+                li.appendChild(cb);
+                li.appendChild(span);
+                ul.appendChild(li);
+            });
+            container.appendChild(ul);
+        });
 
-                // Tapahtumankuuntelijat (
+        function updateTotal() {
+            let total = 0;
+            const checkboxes = document.querySelectorAll('input[type="checkbox"]');
+            checkboxes.forEach(cb => {
+                const parts = cb.id.split('-');
+                const g = parts[1];
+                const i = parts[2];
+                const row = cb.parentElement;
+                
+                if (cb.checked) {
+                    total += shoppingData[g].items[i].price;
+                    row.classList.add('checked');
+                } else {
+                    row.classList.remove('checked');
+                }
+            });
+            document.getElementById('cart-total').innerText = total.toFixed(2) + " €";
+            document.getElementById('budget-left').innerText = (108.00 - total).toFixed(2) + " €";
+        }
+
+        function saveState() {
+            const state = [];
+            document.querySelectorAll('input[type="checkbox"]').forEach(cb => {
+                if(cb.checked) state.push(cb.id);
+            });
+            localStorage.setItem('ketoList_v12', JSON.stringify(state));
+        }
+
+        function loadState() {
+            const saved = JSON.parse(localStorage.getItem('ketoList_v12'));
+            if (saved) {
+                saved.forEach(id => {
+                    const el = document.getElementById(id);
+                    if(el) el.checked = true;
+                });
+            }
+            updateTotal();
+        }
+
+        window.resetList = function() {
+            if(confirm("Tyhjennetäänkö lista?")) {
+                localStorage.removeItem('ketoList_v12');
+                document.querySelectorAll('input[type="checkbox"]').forEach(cb => cb.checked = false);
+                updateTotal();
+            }
+        }
+
+        // Käynnistetään heti
+        loadState();
+
+    } catch (error) {
+        // Jos virhe tapahtuu, näytetään se käyttäjälle
+        const errBox = document.getElementById('error-log');
+        errBox.style.display = 'block';
+        errBox.innerHTML = "<strong>VIRHE KOODISSA:</strong><br>" + error.message + "<br><small>" + error.stack + "</small>";
+    }
+</script>
+</body>
+</html>
