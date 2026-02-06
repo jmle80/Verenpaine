@@ -3,397 +3,374 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Keto-Opas 46v v1.4</title>
+    <title>Keto-Opas 46v v2.0</title>
     <style>
-        :root {
-            --primary: #2c3e50;
-            --accent: #d35400; /* Oranssi sävy versiolle 1.4 */
-            --bg: #f4f4f9;
-            --text: #333;
-            --card-bg: #fff;
-            --danger: #c0392b;
-            --price-color: #e67e22;
-        }
-
         body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-            background-color: var(--bg);
-            color: var(--text);
+            font-family: sans-serif;
+            background-color: #f4f4f9;
+            color: #333;
             margin: 0;
             padding: 0;
-            padding-bottom: 110px; /* Tilaa alanaville */
-            transition: background-color 0.3s;
+            padding-bottom: 100px;
         }
 
-        /* YÖVUORO-TEEMA */
-        body.night-shift-mode {
-            background-color: #1e1e2e;
-            color: #ecf0f1;
-        }
-        body.night-shift-mode .meal-card {
-            background: #2d2d44;
-            color: #fff;
-            border-left-color: #f1c40f;
-        }
-        body.night-shift-mode .meal-title {
-            color: #f1c40f;
-        }
-        body.night-shift-mode .day-controls {
-            background: #2d2d44;
-            color: white;
-        }
-        body.night-shift-mode .shop-item {
-            background: #2d2d44;
-            border-color: #444;
-            color: white;
-        }
-        body.night-shift-mode .price-tag {
-            color: #f1c40f;
-        }
-        body.night-shift-mode h2, body.night-shift-mode h3 {
-            color: #f1c40f;
-        }
-        body.night-shift-mode summary { color: #f1c40f; }
-
-        /* VERSIO (Master Checklist: 1. rivi, eri väri) */
+        /* --- TYÖKALUT & UI --- */
         .version-tag {
-            background-color: var(--accent);
-            color: #fff;
+            background-color: #27ae60;
+            color: white;
             padding: 10px;
-            font-size: 0.9rem;
-            font-weight: bold;
             text-align: center;
-            width: 100%;
-            display: block;
-            box-sizing: border-box;
+            font-weight: bold;
         }
 
         header {
-            background-color: var(--primary);
+            background-color: #2c3e50;
             color: white;
             padding: 15px;
             text-align: center;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
         }
 
-        h1 { margin: 0; font-size: 1.4rem; }
-        h2 { font-size: 1.2rem; margin-top: 0; color: var(--primary); }
-
-        /* VUOROKYTKIN */
-        .shift-toggle-container {
-            display: flex;
-            justify-content: center;
-            margin: 15px 0;
-            padding: 0 15px;
-        }
-
-        .shift-btn {
-            padding: 12px 10px;
-            border: 2px solid var(--primary);
-            background: white;
-            color: var(--primary);
-            font-weight: bold;
-            cursor: pointer;
-            flex: 1;
-            font-size: 0.9rem;
-        }
-
-        .shift-btn.active {
-            background: var(--primary);
-            color: white;
-        }
+        h1, h2 { margin: 0; margin-bottom: 10px; }
         
-        .shift-btn:first-child { border-radius: 10px 0 0 10px; }
-        .shift-btn:last-child { border-radius: 0 10px 10px 0; }
+        button { cursor: pointer; }
 
-        body.night-shift-mode .shift-btn { border-color: #f1c40f; color: #f1c40f; background: #2d2d44; }
-        body.night-shift-mode .shift-btn.active { background: #f1c40f; color: #1e1e2e; }
-
-
-        /* Navigaatio */
-        .nav-tabs {
-            display: flex;
-            justify-content: space-around;
-            background: white;
-            padding: 10px;
-            position: fixed;
-            bottom: 0;
-            width: 100%;
-            border-top: 1px solid #ccc;
-            box-shadow: 0 -2px 5px rgba(0,0,0,0.1);
-            z-index: 100;
+        /* --- LATAUSRUUTU --- */
+        #loading-screen {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: white; z-index: 9999;
+            display: flex; justify-content: center; align-items: center;
+            font-size: 1.5rem; color: #2c3e50;
         }
 
-        .nav-btn {
-            background: none;
-            border: none;
-            font-size: 1rem;
-            padding: 10px;
-            color: #7f8c8d;
-            font-weight: bold;
-            flex: 1;
-        }
+        /* --- PÄIVÄNÄKYMÄ --- */
+        .view { display: none; padding: 15px; max-width: 600px; margin: 0 auto; }
+        .view.active { display: block; }
 
-        .nav-btn.active {
-            color: var(--primary);
-            border-bottom: 3px solid var(--accent);
+        .shift-toggle-container { display: flex; margin: 15px 0; }
+        .shift-btn {
+            flex: 1; padding: 12px; border: 2px solid #2c3e50;
+            background: white; color: #2c3e50; font-weight: bold;
         }
+        .shift-btn.active { background: #2c3e50; color: white; }
 
-        /* Sisältöalueet */
-        .view {
-            display: none;
-            padding: 15px;
-            max-width: 600px;
-            margin: 0 auto;
-        }
-
-        .view.active {
-            display: block;
-        }
-
-        /* Päivänäkymä */
         .day-controls {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 20px;
-            background: white;
-            padding: 10px;
-            border-radius: 8px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            display: flex; justify-content: space-between; align-items: center;
+            background: white; padding: 10px; border-radius: 8px; margin-bottom: 20px;
         }
-
         .ctrl-btn {
-            background-color: var(--primary);
-            color: white;
-            border: none;
-            padding: 10px 20px;
-            border-radius: 5px;
-            font-size: 1.2rem;
-            cursor: pointer;
+            background: #2c3e50; color: white; border: none;
+            padding: 10px 20px; border-radius: 5px; font-size: 1.2rem;
         }
 
         .meal-card {
-            background: var(--card-bg);
-            border-radius: 10px;
-            padding: 15px;
-            margin-bottom: 15px;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
-            border-left: 5px solid var(--accent);
-            transition: all 0.3s;
+            background: white; border-radius: 8px; padding: 15px;
+            margin-bottom: 15px; border-left: 5px solid #27ae60;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
         }
+        .meal-time { color: #7f8c8d; font-size: 0.9rem; font-weight: bold; display: block; margin-bottom: 5px; }
+        .meal-title { font-size: 1.1rem; font-weight: bold; color: #2c3e50; margin-bottom: 10px; }
 
-        .meal-time {
-            font-size: 0.9rem;
-            color: #7f8c8d;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            margin-bottom: 5px;
-            display: block;
-            font-weight: bold;
-        }
+        details { border-top: 1px solid #eee; margin-top: 10px; padding-top: 10px; }
+        summary { font-weight: bold; color: #27ae60; outline: none; }
+        .recipe-text { margin-top: 10px; line-height: 1.5; font-size: 0.95rem; }
 
-        .meal-title {
-            font-size: 1.2rem;
-            font-weight: bold;
-            margin-bottom: 10px;
-            color: var(--primary);
-        }
-
-        details {
-            margin-top: 10px;
-            padding-top: 10px;
-            border-top: 1px solid #eee;
-        }
-
-        summary {
-            cursor: pointer;
-            color: var(--accent);
-            font-weight: bold;
-            outline: none;
-            font-size: 1rem;
-            padding: 5px 0;
-        }
-
-        .recipe-text {
-            margin-top: 10px;
-            line-height: 1.6;
-            font-size: 0.95rem;
-        }
-
-        /* Kauppalista */
-        .shopping-category { margin-bottom: 20px; }
-
-        .category-title {
-            font-size: 1.1rem;
-            font-weight: bold;
-            color: var(--primary);
-            border-bottom: 2px solid var(--accent);
-            padding-bottom: 5px;
-            margin-bottom: 10px;
-        }
-        
-        body.night-shift-mode .category-title { color: #f1c40f; border-color: #f1c40f; }
-
+        /* --- KAUPPALISTA --- */
         .shop-item {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 12px;
-            background: white;
-            margin-bottom: 6px;
-            border-radius: 5px;
-            border: 1px solid #eee;
-            font-size: 1rem;
+            background: white; padding: 12px; margin-bottom: 5px;
+            display: flex; justify-content: space-between; align-items: center;
+            border-radius: 5px; border: 1px solid #ddd;
         }
-
-        .shop-item-left { display: flex; align-items: center; }
-
-        .shop-item input[type="checkbox"] {
-            transform: scale(1.5);
-            margin-right: 15px;
-        }
-
-        .shop-item.checked span {
-            text-decoration: line-through;
-            color: #95a5a6;
-        }
+        .shop-item.checked span { text-decoration: line-through; color: #999; }
+        .shop-item input { transform: scale(1.5); margin-right: 10px; }
         
-        .price-tag {
-            font-weight: bold;
-            color: var(--price-color);
-            font-size: 0.9rem;
-            white-space: nowrap;
-        }
-
-        .total-price-box {
-            background-color: var(--primary);
-            color: white;
-            padding: 15px;
-            border-radius: 8px;
-            margin-bottom: 20px;
-            font-size: 1.2rem;
-            text-align: center;
-            font-weight: bold;
-        }
-        
-        body.night-shift-mode .total-price-box {
-            background-color: #2d2d44;
-            color: #f1c40f;
-            border: 1px solid #f1c40f;
+        .total-box {
+            background: #2c3e50; color: white; padding: 15px;
+            text-align: center; font-size: 1.2rem; font-weight: bold;
+            border-radius: 8px; margin-bottom: 20px;
         }
 
         .reset-btn {
-            background-color: var(--danger);
-            color: white;
-            border: none;
-            padding: 15px;
-            width: 100%;
-            border-radius: 5px;
-            font-size: 1.1rem;
-            margin-top: 20px;
-            cursor: pointer;
-            font-weight: bold;
+            width: 100%; padding: 15px; background: #c0392b; color: white;
+            border: none; font-weight: bold; font-size: 1rem; border-radius: 5px; margin-top: 20px;
         }
 
-        .info-box {
-            background-color: #e8f8f5;
-            border: 1px solid #d1f2eb;
-            color: #0e6251;
-            padding: 15px;
-            border-radius: 5px;
-            margin-bottom: 15px;
-            font-size: 0.95rem;
+        /* --- NAVIGAATIO --- */
+        .nav-tabs {
+            position: fixed; bottom: 0; width: 100%; display: flex;
+            background: white; border-top: 1px solid #ccc; height: 60px;
         }
-        
-        body.night-shift-mode .info-box {
-            background-color: #2d3436;
-            border-color: #f1c40f;
-            color: #f1c40f;
-        }
+        .nav-btn { flex: 1; border: none; background: white; font-weight: bold; color: #7f8c8d; }
+        .nav-btn.active { color: #2c3e50; border-top: 4px solid #27ae60; }
 
-        /* Error box */
-        #error-display {
-            display: none;
-            background: red;
-            color: white;
-            padding: 20px;
-            position: fixed;
-            top: 0; left: 0; width: 100%;
-            z-index: 9999;
-        }
+        /* --- YÖTILA (CSS) --- */
+        body.night-mode { background-color: #222; color: #ddd; }
+        body.night-mode .meal-card, body.night-mode .shop-item, body.night-mode .day-controls, body.night-mode .nav-tabs { background: #333; color: #fff; }
+        body.night-mode .nav-btn { background: #333; }
+        body.night-mode .meal-title { color: #f1c40f; }
+        body.night-mode summary { color: #f1c40f; }
+        body.night-mode .shift-btn { background: #333; color: #f1c40f; border-color: #f1c40f; }
+        body.night-mode .shift-btn.active { background: #f1c40f; color: #222; }
 
     </style>
 </head>
 <body>
 
-    <div id="error-display">Jokin meni pieleen. Päivitä sivu.</div>
+    <div id="loading-screen">Ladataan sovellusta...</div>
 
-    <div class="version-tag">Versio 1.4 - Master Checklist Verified</div>
-
-    <header>
-        <h1>Keto-Opas 46v</h1>
-    </header>
+    <div class="version-tag">Versio 2.0 - Vakaa versio</div>
+    <header><h1>Keto-Opas 46v</h1></header>
 
     <div id="view-day" class="view active">
-        
         <div class="shift-toggle-container">
-            <button class="shift-btn active" id="btn-morning" onclick="setShiftMode('morning')">☀ Aamuvuoro</button>
-            <button class="shift-btn" id="btn-night" onclick="setShiftMode('night')">🌙 Yövuoro</button>
+            <button class="shift-btn active" id="btn-morning" onclick="app.setShift('morning')">☀ Aamuvuoro</button>
+            <button class="shift-btn" id="btn-night" onclick="app.setShift('night')">🌙 Yövuoro</button>
         </div>
 
         <div class="day-controls">
-            <button class="ctrl-btn" onclick="changeDay(-1)">&#8592;</button>
-            <h2 id="current-day-title">Maanantai</h2>
-            <button class="ctrl-btn" onclick="changeDay(1)">&#8594;</button>
+            <button class="ctrl-btn" onclick="app.changeDay(-1)">&#8592;</button>
+            <h2 id="day-title">Maanantai</h2>
+            <button class="ctrl-btn" onclick="app.changeDay(1)">&#8594;</button>
         </div>
 
-        <div class="info-box" id="shift-info">
-            </div>
-
-        <div id="meals-container">
-            </div>
+        <div id="meals-list"></div>
     </div>
 
     <div id="view-shop" class="view">
-        <h2>S-Market / Prisma Ostoslista</h2>
-        
-        <div class="total-price-box">
-            Yhteensä: <span id="total-sum">0,00</span> €
-        </div>
-
-        <div id="shopping-list-container">
-            </div>
-        <button class="reset-btn" onclick="resetShoppingList()">Tyhjennä lista</button>
+        <h2>Ostoslista</h2>
+        <div class="total-box">Yhteensä: <span id="total-price">0.00</span> €</div>
+        <div id="shop-list"></div>
+        <button class="reset-btn" onclick="app.resetShop()">Tyhjennä lista</button>
     </div>
 
-    <nav class="nav-tabs">
-        <button class="nav-btn active" onclick="switchView('day', this)">Päivän ohjelma</button>
-        <button class="nav-btn" onclick="switchView('shop', this)">Kauppalista</button>
-    </nav>
+    <div class="nav-tabs">
+        <button class="nav-btn active" id="nav-day" onclick="app.switchTab('day')">Päiväohjelma</button>
+        <button class="nav-btn" id="nav-shop" onclick="app.switchTab('shop')">Kauppalista</button>
+    </div>
 
 <script>
-    // Käärimme kaiken try-catchiin vikasietoisuuden vuoksi
-    try {
-        const weekData = [
-            {
-                day: "Maanantai",
-                meals: [
-                    { 
-                        name: "Mustikkasmoothie tai Munat", 
-                        recipe: "<strong>Smoothie:</strong><br>- 1 dl pakastemustikoita<br>- ½ avokado<br>- 1 dl Kotimaista kuohukermaa<br>- 0.5 dl vettä tai mantelimaitoa<br>Sekoita blenderissä.<br><br><strong>TAI Munat:</strong><br>- 2 kpl kananmunia paistettuna<br>- 10 g voita<br>- 5 viipaletta kurkkua" 
-                    },
-                    { 
-                        name: "Tonnikalasalaatti Pähkinöillä", 
-                        recipe: "- 1 prk (185g/140g) Rainbow tonnikalaa öljyssä (valuta puolet öljystä)<br>- 1 kpl keitetty kananmuna<br>- 2 dl jääsalaattia<br>- 5 cm kurkkua<br>- 1 rkl Rainbow saksanpähkinöitä<br>- 1 rkl majoneesia" 
-                    },
-                    { 
-                        name: "Uunilohi & Parsakaali", 
-                        recipe: "- 150-200 g Kotimaista kirjolohifileetä<br>- Sitruunapippuria, suolaa<br>- Paista 200°C n. 20 min.<br>- Lisuke: 200 g höyrytettyä parsakaalia<br>- 20 g voita päälle." 
-                    }
-                ]
-            },
-            {
-                day: "Tiistai",
-                meals: [
-                    { name: "Valintasi mukaan (Smoothie/Munat)",
+/** * TIETOKANTA (Kaikki data tässä)
+ */
+const DATA = {
+    week: [
+        { day: "Maanantai", meals: [
+            { t: "Aamu", n: "Mustikkasmoothie / Munat", r: "1dl mustikoita, ½ avokado, 1dl kermaa. TAI 2 paistettua munaa." },
+            { t: "Lounas", n: "Tonnikalasalaatti", r: "1 prk tonnikalaa, salaattia, kurkkua, 1 muna, pähkinöitä, majoneesia." },
+            { t: "Päivällinen", n: "Uunilohi & Parsakaali", r: "200g lohta uuniin (200°C 20min). Höyrytetty parsakaali voilla." }
+        ]},
+        { day: "Tiistai", meals: [
+            { t: "Aamu", n: "Smoothie / Munat", r: "Ks. maanantai." },
+            { t: "Lounas", n: "Uunilohen jämät", r: "Maanantain lohta majoneesilla." },
+            { t: "Päivällinen", n: "Kanaa & Kukkakaalimuusia", r: "2 paistileikettä uuniin (35min). Keitä kukkakaali, soseuta voin ja kerman kanssa." }
+        ]},
+        { day: "Keskiviikko", meals: [
+            { t: "Aamu", n: "Smoothie / Munat", r: "Ks. maanantai." },
+            { t: "Lounas", n: "Kanaa & Muusia", r: "Tiistain jämät." },
+            { t: "Päivällinen", n: "Jauhelihapihvit", r: "400g jauhelihaa (tee 4 pihviä, syö 2). Paista voissa. Lisäksi vihreitä papuja." }
+        ]},
+        { day: "Torstai", meals: [
+            { t: "Aamu", n: "Smoothie / Munat", r: "Ks. maanantai." },
+            { t: "Lounas", n: "Jauhelihapihvit", r: "2 eilistä pihviä, salaattia, oliiviöljyä." },
+            { t: "Päivällinen", n: "Tonnikalavuoka", r: "Kesäkurpitsaa, 2 prk tonnikalaa, 2dl kermaa, juustoa. Uuni 200°C 25min." }
+        ]},
+        { day: "Perjantai", meals: [
+            { t: "Aamu", n: "Tuhti munakas", r: "3 munaa, kermaa, juustoa pannulle." },
+            { t: "Lounas", n: "Smoothie / Kevyt", r: "Mustikkasmoothie." },
+            { t: "Päivällinen", n: "Kermainen Pekoni-Kana", r: "150g kanaa, pekonia. Paista. Lisää 2dl kermaa. Hauduta. Parsakaalia." }
+        ]},
+        { day: "Lauantai", meals: [
+            { t: "Aamu", n: "Brunssi", r: "Munakokkelia, pekonia, kahvia." },
+            { t: "Lounas", n: "Kanasalaatti", r: "Perjantain kanan jämät salaatilla, avokadoa, pähkinöitä." },
+            { t: "Päivällinen", n: "Wingsit", r: "500g siipiä uuniin. Dippaa majoneesiin. Kurkkutikkuja." }
+        ]},
+        { day: "Sunnuntai", meals: [
+            { t: "Aamu", n: "Smoothie", r: "Mustikkasmoothie." },
+            { t: "Lounas", n: "Wingsien jämät", r: "Loput siivet." },
+            { t: "Päivällinen", n: "Keto-Pizza (tai Tankkaus)", r: "Pohja: 2 munaa+3dl juustoa (uuni 10min). Täyte: pyree, kana, juusto. (Jos Yövuoro: Syö klo 19)." }
+        ]}
+    ],
+    shop: [
+        { c: "HeVi", i: [
+            { n: "Jääsalaatti", p: 1.49 }, { n: "Kurkku (2)", p: 1.80 }, { n: "Tomaatti", p: 2.49 },
+            { n: "Parsakaali 400g", p: 1.19 }, { n: "Kukkakaali", p: 2.99 }, { n: "Avokadoja", p: 2.95 },
+            { n: "Kesäkurpitsa", p: 1.20 }, { n: "Sipuli", p: 1.50 }, { n: "Vihr. Pavut", p: 0.95 }
+        ]},
+        { c: "Liha/Kala", i: [
+            { n: "Jauheliha 400g", p: 3.99 }, { n: "Broileri paistileike", p: 4.50 },
+            { n: "Broileri suikale", p: 4.29 }, { n: "Siivet 1kg", p: 3.99 },
+            { n: "Kirjolohi 600g", p: 9.90 }, { n: "Pekoni", p: 1.39 }
+        ]},
+        { c: "Maito/Munat", i: [
+            { n: "Munat 15kpl", p: 2.59 }, { n: "Kuohukerma 1L", p: 4.19 },
+            { n: "Voi 500g", p: 3.49 }, { n: "Juustoraaste 500g", p: 3.95 }
+        ]},
+        { c: "Muut", i: [
+            { n: "Tonnikala (4prk)", p: 5.95 }, { n: "Pähkinät", p: 3.49 },
+            { n: "Tomaattipyree", p: 0.60 }, { n: "Majoneesi", p: 2.15 }, { n: "Oliiviöljy", p: 4.50 }
+        ]}
+    ]
+};
+
+/**
+ * SOVELLUSLOGIIKKA (Namespace 'app')
+ */
+const app = {
+    state: {
+        dayIdx: 0,
+        shift: 'morning', // 'morning' | 'night'
+        checked: []
+    },
+
+    init: function() {
+        // 1. Lataa tallennus
+        try {
+            const s = localStorage.getItem('ketoState_v2');
+            if (s) this.state = JSON.parse(s);
+        } catch(e) { console.log("Ei tallennustukea"); }
+
+        // 2. Piilota latausruutu
+        document.getElementById('loading-screen').style.display = 'none';
+
+        // 3. Renderöi
+        this.renderDay();
+        this.renderShop();
+        this.updateUI();
+    },
+
+    save: function() {
+        try {
+            localStorage.setItem('ketoState_v2', JSON.stringify(this.state));
+        } catch(e) {}
+    },
+
+    /* --- TOIMINNOT --- */
+
+    changeDay: function(dir) {
+        this.state.dayIdx += dir;
+        if (this.state.dayIdx < 0) this.state.dayIdx = 6;
+        if (this.state.dayIdx > 6) this.state.dayIdx = 0;
+        this.save();
+        this.renderDay();
+    },
+
+    setShift: function(mode) {
+        this.state.shift = mode;
+        this.save();
+        this.updateUI(); // Vaihtaa teeman
+        this.renderDay();
+    },
+
+    switchTab: function(tab) {
+        document.querySelectorAll('.view').forEach(e => e.classList.remove('active'));
+        document.getElementById('view-' + tab).classList.add('active');
+        
+        document.querySelectorAll('.nav-btn').forEach(e => e.classList.remove('active'));
+        document.getElementById('nav-' + tab).classList.add('active');
+    },
+
+    toggleShopItem: function(name) {
+        const idx = this.state.checked.indexOf(name);
+        if (idx > -1) this.state.checked.splice(idx, 1);
+        else this.state.checked.push(name);
+        this.save();
+        this.renderShop();
+    },
+
+    resetShop: function() {
+        if(confirm("Tyhjennetäänkö lista?")) {
+            this.state.checked = [];
+            this.save();
+            this.renderShop();
+        }
+    },
+
+    /* --- RENDERÖINTI --- */
+
+    updateUI: function() {
+        // Päivitä napit
+        const isNight = (this.state.shift === 'night');
+        document.body.className = isNight ? 'night-mode' : '';
+        document.getElementById('btn-morning').className = isNight ? 'shift-btn' : 'shift-btn active';
+        document.getElementById('btn-night').className = isNight ? 'shift-btn active' : 'shift-btn';
+    },
+
+    renderDay: function() {
+        const d = DATA.week[this.state.dayIdx];
+        document.getElementById('day-title').innerText = d.day;
+        
+        const list = document.getElementById('meals-list');
+        list.innerHTML = '';
+
+        // Määritä ateriajärjestys vuoron mukaan
+        let order = [0, 1, 2]; // Aamu, Lounas, Päivällinen
+        let labels = ["Aamupala (06-08)", "Lounas (11-13)", "Päivällinen (16-18)"];
+
+        const isWeekend = (this.state.dayIdx === 5 || this.state.dayIdx === 6);
+
+        if (this.state.shift === 'night' && !isWeekend) {
+            order = [2, 1, 0]; // Tankkaus (Päivällinen), Eväs (Lounas), Iltapala (Aamu)
+            labels = ["Tankkaus (18:00)", "Eväs (01:00)", "Iltapala (07:00)"];
+        }
+        
+        // Sunnuntai-ilta logiikka
+        if (this.state.dayIdx === 6 && this.state.shift === 'night') {
+             // Sunnuntai: Aamu normaali, Ilta tankkaus
+             labels[2] = "TANKKAUS YÖHÖN (19:00)";
+        }
+
+        order.forEach((mealIdx, i) => {
+            const m = d.meals[mealIdx];
+            const div = document.createElement('div');
+            div.className = 'meal-card';
+            div.innerHTML = `
+                <span class="meal-time">${labels[i]}</span>
+                <div class="meal-title">${m.n}</div>
+                <details>
+                    <summary>Ohje</summary>
+                    <div class="recipe-text">${m.r}</div>
+                </details>
+            `;
+            list.appendChild(div);
+        });
+    },
+
+    renderShop: function() {
+        const list = document.getElementById('shop-list');
+        list.innerHTML = '';
+        let total = 0;
+
+        DATA.shop.forEach(cat => {
+            const h3 = document.createElement('h3');
+            h3.innerText = cat.c;
+            h3.style.marginTop = "15px";
+            list.appendChild(h3);
+
+            cat.i.forEach(item => {
+                total += item.p;
+                const isChecked = this.state.checked.includes(item.n);
+                
+                const div = document.createElement('div');
+                div.className = 'shop-item ' + (isChecked ? 'checked' : '');
+                div.onclick = () => app.toggleShopItem(item.n); // Klikkaa koko riviä
+                
+                div.innerHTML = `
+                    <div style="display:flex; align-items:center;">
+                        <input type="checkbox" ${isChecked ? 'checked' : ''} disabled>
+                        <span>${item.n}</span>
+                    </div>
+                    <b>${item.p.toFixed(2)}€</b>
+                `;
+                list.appendChild(div);
+            });
+        });
+        document.getElementById('total-price').innerText = total.toFixed(2);
+    }
+};
+
+// KÄYNNISTYS (Varmempi tapa kuin window.onload)
+document.addEventListener('DOMContentLoaded', () => {
+    app.init();
+});
+
+</script>
+</body>
+</html>
