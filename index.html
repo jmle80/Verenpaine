@@ -3,11 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Keto-Opas 46v v1.3</title>
+    <title>Keto-Opas 46v v1.4</title>
     <style>
         :root {
             --primary: #2c3e50;
-            --accent: #16a085; /* Turkoosi sävy versiolle 1.3 */
+            --accent: #d35400; /* Oranssi sävy versiolle 1.4 */
             --bg: #f4f4f9;
             --text: #333;
             --card-bg: #fff;
@@ -21,7 +21,7 @@
             color: var(--text);
             margin: 0;
             padding: 0;
-            padding-bottom: 100px; /* Tilaa alanaville ja hinnalle */
+            padding-bottom: 110px; /* Tilaa alanaville */
             transition: background-color 0.3s;
         }
 
@@ -53,13 +53,14 @@
         body.night-shift-mode h2, body.night-shift-mode h3 {
             color: #f1c40f;
         }
+        body.night-shift-mode summary { color: #f1c40f; }
 
-        /* VERSIO (Muistisääntö: Ensimmäinen rivi, eri väri) */
+        /* VERSIO (Master Checklist: 1. rivi, eri väri) */
         .version-tag {
             background-color: var(--accent);
             color: #fff;
-            padding: 8px 10px;
-            font-size: 0.85rem;
+            padding: 10px;
+            font-size: 0.9rem;
             font-weight: bold;
             text-align: center;
             width: 100%;
@@ -87,14 +88,13 @@
         }
 
         .shift-btn {
-            padding: 10px 20px;
+            padding: 12px 10px;
             border: 2px solid var(--primary);
             background: white;
             color: var(--primary);
             font-weight: bold;
             cursor: pointer;
             flex: 1;
-            max-width: 200px;
             font-size: 0.9rem;
         }
 
@@ -103,8 +103,8 @@
             color: white;
         }
         
-        .shift-btn:first-child { border-radius: 20px 0 0 20px; }
-        .shift-btn:last-child { border-radius: 0 20px 20px 0; }
+        .shift-btn:first-child { border-radius: 10px 0 0 10px; }
+        .shift-btn:last-child { border-radius: 0 10px 10px 0; }
 
         body.night-shift-mode .shift-btn { border-color: #f1c40f; color: #f1c40f; background: #2d2d44; }
         body.night-shift-mode .shift-btn.active { background: #f1c40f; color: #1e1e2e; }
@@ -167,13 +167,11 @@
             background-color: var(--primary);
             color: white;
             border: none;
-            padding: 8px 15px;
+            padding: 10px 20px;
             border-radius: 5px;
-            font-size: 1rem;
+            font-size: 1.2rem;
             cursor: pointer;
         }
-        
-        .ctrl-btn:active { transform: scale(0.95); }
 
         .meal-card {
             background: var(--card-bg);
@@ -194,8 +192,6 @@
             display: block;
             font-weight: bold;
         }
-        
-        body.night-shift-mode .meal-time { color: #ccc; }
 
         .meal-title {
             font-size: 1.2rem;
@@ -204,7 +200,6 @@
             color: var(--primary);
         }
 
-        /* Reseptin avaaminen */
         details {
             margin-top: 10px;
             padding-top: 10px;
@@ -217,9 +212,8 @@
             font-weight: bold;
             outline: none;
             font-size: 1rem;
+            padding: 5px 0;
         }
-        
-        body.night-shift-mode summary { color: #f1c40f; }
 
         .recipe-text {
             margin-top: 10px;
@@ -228,9 +222,7 @@
         }
 
         /* Kauppalista */
-        .shopping-category {
-            margin-bottom: 20px;
-        }
+        .shopping-category { margin-bottom: 20px; }
 
         .category-title {
             font-size: 1.1rem;
@@ -255,10 +247,7 @@
             font-size: 1rem;
         }
 
-        .shop-item-left {
-            display: flex;
-            align-items: center;
-        }
+        .shop-item-left { display: flex; align-items: center; }
 
         .shop-item input[type="checkbox"] {
             transform: scale(1.5);
@@ -274,6 +263,7 @@
             font-weight: bold;
             color: var(--price-color);
             font-size: 0.9rem;
+            white-space: nowrap;
         }
 
         .total-price-box {
@@ -306,7 +296,6 @@
             font-weight: bold;
         }
 
-        /* Info box */
         .info-box {
             background-color: #e8f8f5;
             border: 1px solid #d1f2eb;
@@ -323,11 +312,24 @@
             color: #f1c40f;
         }
 
+        /* Error box */
+        #error-display {
+            display: none;
+            background: red;
+            color: white;
+            padding: 20px;
+            position: fixed;
+            top: 0; left: 0; width: 100%;
+            z-index: 9999;
+        }
+
     </style>
 </head>
 <body>
 
-    <div class="version-tag">Versio 1.3 - Vapaapäivät & Hinnat</div>
+    <div id="error-display">Jokin meni pieleen. Päivitä sivu.</div>
+
+    <div class="version-tag">Versio 1.4 - Master Checklist Verified</div>
 
     <header>
         <h1>Keto-Opas 46v</h1>
@@ -357,12 +359,12 @@
         <h2>S-Market / Prisma Ostoslista</h2>
         
         <div class="total-price-box">
-            Arvioitu yhteishinta: <span id="total-sum">0,00</span> €
+            Yhteensä: <span id="total-sum">0,00</span> €
         </div>
 
         <div id="shopping-list-container">
             </div>
-        <button class="reset-btn" onclick="resetShoppingList()">Tyhjennä lista (Aloita alusta)</button>
+        <button class="reset-btn" onclick="resetShoppingList()">Tyhjennä lista</button>
     </div>
 
     <nav class="nav-tabs">
@@ -371,35 +373,27 @@
     </nav>
 
 <script>
-    // --- DATAMALLI ---
-    // meals[0] = Kevyt (Aamiainen/Iltapala)
-    // meals[1] = Keski (Lounas/Yöeväs)
-    // meals[2] = Tuhti (Päivällinen/Tankkaus)
-    
-    const weekData = [
-        {
-            day: "Maanantai",
-            meals: [
-                { 
-                    name: "Mustikkasmoothie tai Munat", 
-                    recipe: "<strong>Smoothie:</strong><br>- 1 dl pakastemustikoita<br>- ½ avokado<br>- 1 dl Kotimaista kuohukermaa<br>- 0.5 dl vettä tai sokeritonta mantelimaitoa<br>Sekoita blenderissä.<br><br><strong>TAI Munat:</strong><br>- 2 kpl kananmunia paistettuna<br>- 10 g voita paistamiseen<br>- 5 viipaletta kurkkua" 
-                },
-                { 
-                    name: "Tonnikalasalaatti Pähkinöillä", 
-                    recipe: "- 1 prk (185g/140g) Rainbow tonnikalaa öljyssä (valuta puolet öljystä pois)<br>- 1 kpl keitetty kananmuna<br>- 2 dl revittyä jääsalaattia<br>- 5 cm pala kurkkua pilkottuna<br>- 1 rkl (n. 20g) Rainbow saksanpähkinöitä<br>- 1 rkl majoneesia" 
-                },
-                { 
-                    name: "Uunilohi & Parsakaali", 
-                    recipe: "- 150-200 g pala Kotimaista kirjolohifileetä<br>- ½ tl sitruunapippuria & hyppysellinen suolaa<br>- Paista 200°C uunissa n. 20 min.<br>- Lisuke: 200 g (½ pussia) pakasteparsakaalia höyrytettynä<br>- Lisää päälle 20 g (reilu nokare) voita." 
-                }
-            ]
-        },
-        {
-            day: "Tiistai",
-            meals: [
-                { 
-                    name: "Valintasi mukaan (Smoothie/Munat)", 
-                    recipe: "Katso maanantain resepti (samat mitat)." 
-                },
-                { 
-                    name: "Uunilohen jämät",
+    // Käärimme kaiken try-catchiin vikasietoisuuden vuoksi
+    try {
+        const weekData = [
+            {
+                day: "Maanantai",
+                meals: [
+                    { 
+                        name: "Mustikkasmoothie tai Munat", 
+                        recipe: "<strong>Smoothie:</strong><br>- 1 dl pakastemustikoita<br>- ½ avokado<br>- 1 dl Kotimaista kuohukermaa<br>- 0.5 dl vettä tai mantelimaitoa<br>Sekoita blenderissä.<br><br><strong>TAI Munat:</strong><br>- 2 kpl kananmunia paistettuna<br>- 10 g voita<br>- 5 viipaletta kurkkua" 
+                    },
+                    { 
+                        name: "Tonnikalasalaatti Pähkinöillä", 
+                        recipe: "- 1 prk (185g/140g) Rainbow tonnikalaa öljyssä (valuta puolet öljystä)<br>- 1 kpl keitetty kananmuna<br>- 2 dl jääsalaattia<br>- 5 cm kurkkua<br>- 1 rkl Rainbow saksanpähkinöitä<br>- 1 rkl majoneesia" 
+                    },
+                    { 
+                        name: "Uunilohi & Parsakaali", 
+                        recipe: "- 150-200 g Kotimaista kirjolohifileetä<br>- Sitruunapippuria, suolaa<br>- Paista 200°C n. 20 min.<br>- Lisuke: 200 g höyrytettyä parsakaalia<br>- 20 g voita päälle." 
+                    }
+                ]
+            },
+            {
+                day: "Tiistai",
+                meals: [
+                    { name: "Valintasi mukaan (Smoothie/Munat)",
