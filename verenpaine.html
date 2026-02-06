@@ -3,195 +3,403 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Keto Ostoslista v1.2</title>
+    <title>Keto-Opas 46v v1.3</title>
     <style>
-        body { font-family: sans-serif; background-color: #f4f4f9; margin: 0; padding: 20px; color: #333; padding-bottom: 80px; }
-        .version-tag { color: #d9534f; font-weight: bold; margin-bottom: 10px; display: block; }
-        .summary-box { background: #fff; padding: 15px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); margin-bottom: 20px; border-left: 5px solid #27ae60; position: sticky; top: 0; z-index: 100; }
-        .summary-row { display: flex; justify-content: space-between; margin-bottom: 5px; }
-        .category-header { font-size: 1.1em; font-weight: bold; margin-top: 25px; border-bottom: 2px solid #ddd; padding-bottom: 5px; }
-        .item-list { list-style: none; padding: 0; margin: 0; }
-        .item-row { background: #fff; margin-bottom: 8px; padding: 12px; border-radius: 6px; display: flex; align-items: center; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
-        .item-row input { transform: scale(1.5); margin-right: 15px; }
-        .checked { background-color: #e8f5e9; opacity: 0.6; }
-        .checked .item-name { text-decoration: line-through; color: #888; }
-        .item-name { display: block; font-weight: 500; }
-        .item-price { display: block; font-size: 0.9em; color: #777; }
-        .btn-reset { display: block; width: 100%; padding: 15px; background-color: #c0392b; color: white; border: none; border-radius: 8px; font-size: 1.1em; margin-top: 40px; }
+        :root {
+            --primary: #2c3e50;
+            --accent: #16a085; /* Turkoosi sävy versiolle 1.3 */
+            --bg: #f4f4f9;
+            --text: #333;
+            --card-bg: #fff;
+            --danger: #c0392b;
+            --price-color: #e67e22;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--bg);
+            color: var(--text);
+            margin: 0;
+            padding: 0;
+            padding-bottom: 100px; /* Tilaa alanaville ja hinnalle */
+            transition: background-color 0.3s;
+        }
+
+        /* YÖVUORO-TEEMA */
+        body.night-shift-mode {
+            background-color: #1e1e2e;
+            color: #ecf0f1;
+        }
+        body.night-shift-mode .meal-card {
+            background: #2d2d44;
+            color: #fff;
+            border-left-color: #f1c40f;
+        }
+        body.night-shift-mode .meal-title {
+            color: #f1c40f;
+        }
+        body.night-shift-mode .day-controls {
+            background: #2d2d44;
+            color: white;
+        }
+        body.night-shift-mode .shop-item {
+            background: #2d2d44;
+            border-color: #444;
+            color: white;
+        }
+        body.night-shift-mode .price-tag {
+            color: #f1c40f;
+        }
+        body.night-shift-mode h2, body.night-shift-mode h3 {
+            color: #f1c40f;
+        }
+
+        /* VERSIO (Muistisääntö: Ensimmäinen rivi, eri väri) */
+        .version-tag {
+            background-color: var(--accent);
+            color: #fff;
+            padding: 8px 10px;
+            font-size: 0.85rem;
+            font-weight: bold;
+            text-align: center;
+            width: 100%;
+            display: block;
+            box-sizing: border-box;
+        }
+
+        header {
+            background-color: var(--primary);
+            color: white;
+            padding: 15px;
+            text-align: center;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+
+        h1 { margin: 0; font-size: 1.4rem; }
+        h2 { font-size: 1.2rem; margin-top: 0; color: var(--primary); }
+
+        /* VUOROKYTKIN */
+        .shift-toggle-container {
+            display: flex;
+            justify-content: center;
+            margin: 15px 0;
+            padding: 0 15px;
+        }
+
+        .shift-btn {
+            padding: 10px 20px;
+            border: 2px solid var(--primary);
+            background: white;
+            color: var(--primary);
+            font-weight: bold;
+            cursor: pointer;
+            flex: 1;
+            max-width: 200px;
+            font-size: 0.9rem;
+        }
+
+        .shift-btn.active {
+            background: var(--primary);
+            color: white;
+        }
         
-        /* Virheilmoituksen tyyli */
-        #error-log { color: red; background: #ffe6e6; padding: 15px; border: 2px solid red; border-radius: 8px; margin-bottom: 20px; display: none; }
+        .shift-btn:first-child { border-radius: 20px 0 0 20px; }
+        .shift-btn:last-child { border-radius: 0 20px 20px 0; }
+
+        body.night-shift-mode .shift-btn { border-color: #f1c40f; color: #f1c40f; background: #2d2d44; }
+        body.night-shift-mode .shift-btn.active { background: #f1c40f; color: #1e1e2e; }
+
+
+        /* Navigaatio */
+        .nav-tabs {
+            display: flex;
+            justify-content: space-around;
+            background: white;
+            padding: 10px;
+            position: fixed;
+            bottom: 0;
+            width: 100%;
+            border-top: 1px solid #ccc;
+            box-shadow: 0 -2px 5px rgba(0,0,0,0.1);
+            z-index: 100;
+        }
+
+        .nav-btn {
+            background: none;
+            border: none;
+            font-size: 1rem;
+            padding: 10px;
+            color: #7f8c8d;
+            font-weight: bold;
+            flex: 1;
+        }
+
+        .nav-btn.active {
+            color: var(--primary);
+            border-bottom: 3px solid var(--accent);
+        }
+
+        /* Sisältöalueet */
+        .view {
+            display: none;
+            padding: 15px;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .view.active {
+            display: block;
+        }
+
+        /* Päivänäkymä */
+        .day-controls {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            background: white;
+            padding: 10px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+
+        .ctrl-btn {
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 5px;
+            font-size: 1rem;
+            cursor: pointer;
+        }
+        
+        .ctrl-btn:active { transform: scale(0.95); }
+
+        .meal-card {
+            background: var(--card-bg);
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 15px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+            border-left: 5px solid var(--accent);
+            transition: all 0.3s;
+        }
+
+        .meal-time {
+            font-size: 0.9rem;
+            color: #7f8c8d;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 5px;
+            display: block;
+            font-weight: bold;
+        }
+        
+        body.night-shift-mode .meal-time { color: #ccc; }
+
+        .meal-title {
+            font-size: 1.2rem;
+            font-weight: bold;
+            margin-bottom: 10px;
+            color: var(--primary);
+        }
+
+        /* Reseptin avaaminen */
+        details {
+            margin-top: 10px;
+            padding-top: 10px;
+            border-top: 1px solid #eee;
+        }
+
+        summary {
+            cursor: pointer;
+            color: var(--accent);
+            font-weight: bold;
+            outline: none;
+            font-size: 1rem;
+        }
+        
+        body.night-shift-mode summary { color: #f1c40f; }
+
+        .recipe-text {
+            margin-top: 10px;
+            line-height: 1.6;
+            font-size: 0.95rem;
+        }
+
+        /* Kauppalista */
+        .shopping-category {
+            margin-bottom: 20px;
+        }
+
+        .category-title {
+            font-size: 1.1rem;
+            font-weight: bold;
+            color: var(--primary);
+            border-bottom: 2px solid var(--accent);
+            padding-bottom: 5px;
+            margin-bottom: 10px;
+        }
+        
+        body.night-shift-mode .category-title { color: #f1c40f; border-color: #f1c40f; }
+
+        .shop-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px;
+            background: white;
+            margin-bottom: 6px;
+            border-radius: 5px;
+            border: 1px solid #eee;
+            font-size: 1rem;
+        }
+
+        .shop-item-left {
+            display: flex;
+            align-items: center;
+        }
+
+        .shop-item input[type="checkbox"] {
+            transform: scale(1.5);
+            margin-right: 15px;
+        }
+
+        .shop-item.checked span {
+            text-decoration: line-through;
+            color: #95a5a6;
+        }
+        
+        .price-tag {
+            font-weight: bold;
+            color: var(--price-color);
+            font-size: 0.9rem;
+        }
+
+        .total-price-box {
+            background-color: var(--primary);
+            color: white;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            font-size: 1.2rem;
+            text-align: center;
+            font-weight: bold;
+        }
+        
+        body.night-shift-mode .total-price-box {
+            background-color: #2d2d44;
+            color: #f1c40f;
+            border: 1px solid #f1c40f;
+        }
+
+        .reset-btn {
+            background-color: var(--danger);
+            color: white;
+            border: none;
+            padding: 15px;
+            width: 100%;
+            border-radius: 5px;
+            font-size: 1.1rem;
+            margin-top: 20px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        /* Info box */
+        .info-box {
+            background-color: #e8f8f5;
+            border: 1px solid #d1f2eb;
+            color: #0e6251;
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 15px;
+            font-size: 0.95rem;
+        }
+        
+        body.night-shift-mode .info-box {
+            background-color: #2d3436;
+            border-color: #f1c40f;
+            color: #f1c40f;
+        }
+
     </style>
 </head>
 <body>
 
-    <span class="version-tag">Versio 1.2 (Debug)</span>
+    <div class="version-tag">Versio 1.3 - Vapaapäivät & Hinnat</div>
 
-    <div id="error-log"></div>
+    <header>
+        <h1>Keto-Opas 46v</h1>
+    </header>
 
-    <div class="summary-box">
-        <div class="summary-row">
-            <span>Ostoskorissa:</span>
-            <span id="cart-total" style="color: #27ae60; font-weight:bold;">0.00 €</span>
+    <div id="view-day" class="view active">
+        
+        <div class="shift-toggle-container">
+            <button class="shift-btn active" id="btn-morning" onclick="setShiftMode('morning')">☀ Aamuvuoro</button>
+            <button class="shift-btn" id="btn-night" onclick="setShiftMode('night')">🌙 Yövuoro</button>
         </div>
-        <div class="summary-row">
-            <span>Budjetti:</span>
-            <span id="budget-left">108.00 €</span>
+
+        <div class="day-controls">
+            <button class="ctrl-btn" onclick="changeDay(-1)">&#8592;</button>
+            <h2 id="current-day-title">Maanantai</h2>
+            <button class="ctrl-btn" onclick="changeDay(1)">&#8594;</button>
         </div>
+
+        <div class="info-box" id="shift-info">
+            </div>
+
+        <div id="meals-container">
+            </div>
     </div>
 
-    <h1>Ketogeeninen viikko</h1>
+    <div id="view-shop" class="view">
+        <h2>S-Market / Prisma Ostoslista</h2>
+        
+        <div class="total-price-box">
+            Arvioitu yhteishinta: <span id="total-sum">0,00</span> €
+        </div>
 
-    <div id="shopping-list-container">
-        <p>Ladataan...</p>
+        <div id="shopping-list-container">
+            </div>
+        <button class="reset-btn" onclick="resetShoppingList()">Tyhjennä lista (Aloita alusta)</button>
     </div>
 
-    <button class="btn-reset" onclick="resetList()">Tyhjennä lista</button>
+    <nav class="nav-tabs">
+        <button class="nav-btn active" onclick="switchView('day', this)">Päivän ohjelma</button>
+        <button class="nav-btn" onclick="switchView('shop', this)">Kauppalista</button>
+    </nav>
 
 <script>
-    // Käärimme kaiken try-catch lohkoon virheiden nappaamiseksi
-    try {
-        const shoppingData = [
-            { category: "Liha, Kala & Kana", items: [
-                { name: "Naudan jauheliha 20% (800g)", price: 9.80 },
-                { name: "Kirjolohifilee (n. 400g)", price: 7.60 },
-                { name: "Broilerin koipireidet (1.1kg)", price: 3.60 },
-                { name: "Broilerin filee/paisti (400g)", price: 5.50 },
-                { name: "Seiti, pakaste (400g)", price: 3.35 },
-                { name: "Pekoni (140g)", price: 2.00 },
-                { name: "Katkaravut, pakaste (180g)", price: 4.50 },
-                { name: "Tonnikala öljyssä", price: 1.60 }
-            ]},
-            { category: "Maitotuotteet & Munat", items: [
-                { name: "Kananmunat (15kpl)", price: 3.60 },
-                { name: "Voi (500g)", price: 3.85 },
-                { name: "Kuohukerma (5dl)", price: 3.40 },
-                { name: "Turkkilainen jogurtti (1kg)", price: 3.90 },
-                { name: "Kermajuusto (1kg)", price: 6.00 },
-                { name: "Feta/Salaattijuusto", price: 3.00 },
-                { name: "Vuohenjuusto", price: 4.50 },
-                { name: "Creme Fraiche (2prk)", price: 3.00 }
-            ]},
-            { category: "Hedelmät & Vihannekset", items: [
-                { name: "Avokadot (pussi)", price: 4.70 },
-                { name: "Salaattisekoitus (2pss)", price: 4.00 },
-                { name: "Kurkku", price: 1.50 },
-                { name: "Kukkakaali & Parsakaali", price: 5.00 },
-                { name: "Vihreät pavut (pakaste)", price: 1.50 },
-                { name: "Sienet", price: 2.50 },
-                { name: "Pinaatti", price: 2.00 },
-                { name: "Marjat (pakaste)", price: 3.00 },
-                { name: "Sitruuna & Valkosipuli", price: 1.50 },
-                { name: "Tomaattimurska/Salsa", price: 2.00 }
-            ]},
-            { category: "Kuivat & Muut", items: [
-                { name: "Mantelijauho (200g)", price: 4.50 },
-                { name: "Pähkinät", price: 4.00 },
-                { name: "Tacomauste", price: 1.50 }
-            ]}
-        ];
-
-        const container = document.getElementById('shopping-list-container');
-        container.innerHTML = ""; // Tyhjennä "Ladataan..." teksti
-
-        // Luodaan lista
-        shoppingData.forEach((group, gIndex) => {
-            const h = document.createElement('div');
-            h.className = 'category-header';
-            h.innerText = group.category;
-            container.appendChild(h);
-
-            const ul = document.createElement('ul');
-            ul.className = 'item-list';
-
-            group.items.forEach((item, iIndex) => {
-                const li = document.createElement('li');
-                li.className = 'item-row';
-                
-                // Checkbox
-                const cb = document.createElement('input');
-                cb.type = 'checkbox';
-                cb.id = 'cb-' + gIndex + '-' + iIndex;
-                cb.onclick = function() { updateTotal(); saveState(); };
-
-                // Tekstit
-                const span = document.createElement('div');
-                span.className = 'item-details';
-                span.innerHTML = '<span class="item-name">' + item.name + '</span>' +
-                                 '<span class="item-price">n. ' + item.price.toFixed(2) + ' €</span>';
-                
-                // Riviä klikkaamalla myös valitaan
-                li.onclick = function(e) {
-                    if (e.target !== cb) {
-                        cb.checked = !cb.checked;
-                        updateTotal();
-                        saveState();
-                    }
-                };
-
-                li.appendChild(cb);
-                li.appendChild(span);
-                ul.appendChild(li);
-            });
-            container.appendChild(ul);
-        });
-
-        function updateTotal() {
-            let total = 0;
-            const checkboxes = document.querySelectorAll('input[type="checkbox"]');
-            checkboxes.forEach(cb => {
-                const parts = cb.id.split('-');
-                const g = parts[1];
-                const i = parts[2];
-                const row = cb.parentElement;
-                
-                if (cb.checked) {
-                    total += shoppingData[g].items[i].price;
-                    row.classList.add('checked');
-                } else {
-                    row.classList.remove('checked');
+    // --- DATAMALLI ---
+    // meals[0] = Kevyt (Aamiainen/Iltapala)
+    // meals[1] = Keski (Lounas/Yöeväs)
+    // meals[2] = Tuhti (Päivällinen/Tankkaus)
+    
+    const weekData = [
+        {
+            day: "Maanantai",
+            meals: [
+                { 
+                    name: "Mustikkasmoothie tai Munat", 
+                    recipe: "<strong>Smoothie:</strong><br>- 1 dl pakastemustikoita<br>- ½ avokado<br>- 1 dl Kotimaista kuohukermaa<br>- 0.5 dl vettä tai sokeritonta mantelimaitoa<br>Sekoita blenderissä.<br><br><strong>TAI Munat:</strong><br>- 2 kpl kananmunia paistettuna<br>- 10 g voita paistamiseen<br>- 5 viipaletta kurkkua" 
+                },
+                { 
+                    name: "Tonnikalasalaatti Pähkinöillä", 
+                    recipe: "- 1 prk (185g/140g) Rainbow tonnikalaa öljyssä (valuta puolet öljystä pois)<br>- 1 kpl keitetty kananmuna<br>- 2 dl revittyä jääsalaattia<br>- 5 cm pala kurkkua pilkottuna<br>- 1 rkl (n. 20g) Rainbow saksanpähkinöitä<br>- 1 rkl majoneesia" 
+                },
+                { 
+                    name: "Uunilohi & Parsakaali", 
+                    recipe: "- 150-200 g pala Kotimaista kirjolohifileetä<br>- ½ tl sitruunapippuria & hyppysellinen suolaa<br>- Paista 200°C uunissa n. 20 min.<br>- Lisuke: 200 g (½ pussia) pakasteparsakaalia höyrytettynä<br>- Lisää päälle 20 g (reilu nokare) voita." 
                 }
-            });
-            document.getElementById('cart-total').innerText = total.toFixed(2) + " €";
-            document.getElementById('budget-left').innerText = (108.00 - total).toFixed(2) + " €";
-        }
-
-        function saveState() {
-            const state = [];
-            document.querySelectorAll('input[type="checkbox"]').forEach(cb => {
-                if(cb.checked) state.push(cb.id);
-            });
-            localStorage.setItem('ketoList_v12', JSON.stringify(state));
-        }
-
-        function loadState() {
-            const saved = JSON.parse(localStorage.getItem('ketoList_v12'));
-            if (saved) {
-                saved.forEach(id => {
-                    const el = document.getElementById(id);
-                    if(el) el.checked = true;
-                });
-            }
-            updateTotal();
-        }
-
-        window.resetList = function() {
-            if(confirm("Tyhjennetäänkö lista?")) {
-                localStorage.removeItem('ketoList_v12');
-                document.querySelectorAll('input[type="checkbox"]').forEach(cb => cb.checked = false);
-                updateTotal();
-            }
-        }
-
-        // Käynnistetään heti
-        loadState();
-
-    } catch (error) {
-        // Jos virhe tapahtuu, näytetään se käyttäjälle
-        const errBox = document.getElementById('error-log');
-        errBox.style.display = 'block';
-        errBox.innerHTML = "<strong>VIRHE KOODISSA:</strong><br>" + error.message + "<br><small>" + error.stack + "</small>";
-    }
-</script>
-</body>
-</html>
+            ]
+        },
+        {
+            day: "Tiistai",
+            meals: [
+                { 
+                    name: "Valintasi mukaan (Smoothie/Munat)", 
+                    recipe: "Katso maanantain resepti (samat mitat)." 
+                },
+                { 
+                    name: "Uunilohen jämät",
