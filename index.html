@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Keto-Opas 46v v2.0</title>
+    <title>Keto-Opas v2.1 (Iltapalalla)</title>
     <style>
         body {
             font-family: sans-serif;
@@ -16,7 +16,7 @@
 
         /* --- TYÖKALUT & UI --- */
         .version-tag {
-            background-color: #27ae60;
+            background-color: #8e44ad; /* Violetti v2.1 */
             color: white;
             padding: 10px;
             text-align: center;
@@ -117,7 +117,7 @@
 
     <div id="loading-screen">Ladataan sovellusta...</div>
 
-    <div class="version-tag">Versio 2.0 - Vakaa versio</div>
+    <div class="version-tag">Versio 2.1 - Iltapala lisätty</div>
     <header><h1>Keto-Opas 46v</h1></header>
 
     <div id="view-day" class="view active">
@@ -148,44 +148,52 @@
     </div>
 
 <script>
-/** * TIETOKANTA (Kaikki data tässä)
+/** * TIETOKANTA (Nyt 4 ateriaa per päivä)
+ * 0: Aamu, 1: Lounas, 2: Päivällinen, 3: Iltapala
  */
 const DATA = {
     week: [
         { day: "Maanantai", meals: [
-            { t: "Aamu", n: "Mustikkasmoothie / Munat", r: "1dl mustikoita, ½ avokado, 1dl kermaa. TAI 2 paistettua munaa." },
-            { t: "Lounas", n: "Tonnikalasalaatti", r: "1 prk tonnikalaa, salaattia, kurkkua, 1 muna, pähkinöitä, majoneesia." },
-            { t: "Päivällinen", n: "Uunilohi & Parsakaali", r: "200g lohta uuniin (200°C 20min). Höyrytetty parsakaali voilla." }
+            { n: "Mustikkasmoothie / Munat", r: "1dl mustikoita, ½ avokado, 1dl kermaa. TAI 2 paistettua munaa." },
+            { n: "Tonnikalasalaatti", r: "1 prk tonnikalaa, salaattia, kurkkua, 1 muna, pähkinöitä, majoneesia." },
+            { n: "Uunilohi & Parsakaali", r: "200g lohta uuniin (200°C 20min). Höyrytetty parsakaali voilla." },
+            { n: "Turkkilainen Jogurtti", r: "2 dl turkkilaista jogurttia, ripaus marjoja tai pähkinöitä." }
         ]},
         { day: "Tiistai", meals: [
-            { t: "Aamu", n: "Smoothie / Munat", r: "Ks. maanantai." },
-            { t: "Lounas", n: "Uunilohen jämät", r: "Maanantain lohta majoneesilla." },
-            { t: "Päivällinen", n: "Kanaa & Kukkakaalimuusia", r: "2 paistileikettä uuniin (35min). Keitä kukkakaali, soseuta voin ja kerman kanssa." }
+            { n: "Smoothie / Munat", r: "Ks. maanantai." },
+            { n: "Uunilohen jämät", r: "Maanantain lohta majoneesilla." },
+            { n: "Kanaa & Kukkakaalimuusia", r: "2 paistileikettä uuniin (35min). Keitä kukkakaali, soseuta voin ja kerman kanssa." },
+            { n: "Juustosiivut", r: "3-4 siivua paksua juustoa ja kurkkutikkuja." }
         ]},
         { day: "Keskiviikko", meals: [
-            { t: "Aamu", n: "Smoothie / Munat", r: "Ks. maanantai." },
-            { t: "Lounas", n: "Kanaa & Muusia", r: "Tiistain jämät." },
-            { t: "Päivällinen", n: "Jauhelihapihvit", r: "400g jauhelihaa (tee 4 pihviä, syö 2). Paista voissa. Lisäksi vihreitä papuja." }
+            { n: "Smoothie / Munat", r: "Ks. maanantai." },
+            { n: "Kanaa & Muusia", r: "Tiistain jämät." },
+            { n: "Jauhelihapihvit", r: "400g jauhelihaa (tee 4 pihviä, syö 2). Paista voissa. Lisäksi vihreitä papuja." },
+            { n: "Pähkinät & Tee", r: "Kourallinen (n. 30g) pähkinöitä ja iso kupillinen teetä." }
         ]},
         { day: "Torstai", meals: [
-            { t: "Aamu", n: "Smoothie / Munat", r: "Ks. maanantai." },
-            { t: "Lounas", n: "Jauhelihapihvit", r: "2 eilistä pihviä, salaattia, oliiviöljyä." },
-            { t: "Päivällinen", n: "Tonnikalavuoka", r: "Kesäkurpitsaa, 2 prk tonnikalaa, 2dl kermaa, juustoa. Uuni 200°C 25min." }
+            { n: "Smoothie / Munat", r: "Ks. maanantai." },
+            { n: "Jauhelihapihvit", r: "2 eilistä pihviä, salaattia, oliiviöljyä." },
+            { n: "Tonnikalavuoka", r: "Kesäkurpitsaa, 2 prk tonnikalaa, 2dl kermaa, juustoa. Uuni 200°C 25min." },
+            { n: "Smoothien loppu", r: "Pieni mustikkasmoothie (puolikas annos)." }
         ]},
         { day: "Perjantai", meals: [
-            { t: "Aamu", n: "Tuhti munakas", r: "3 munaa, kermaa, juustoa pannulle." },
-            { t: "Lounas", n: "Smoothie / Kevyt", r: "Mustikkasmoothie." },
-            { t: "Päivällinen", n: "Kermainen Pekoni-Kana", r: "150g kanaa, pekonia. Paista. Lisää 2dl kermaa. Hauduta. Parsakaalia." }
+            { n: "Tuhti munakas", r: "3 munaa, kermaa, juustoa pannulle." },
+            { n: "Smoothie / Kevyt", r: "Mustikkasmoothie." },
+            { n: "Kermainen Pekoni-Kana", r: "150g kanaa, pekonia. Paista. Lisää 2dl kermaa. Hauduta. Parsakaalia." },
+            { n: "Kermavaahto & Marjat", r: "1 dl kermavaahtoa (makeutusainetta jos haluat) ja mustikoita." }
         ]},
         { day: "Lauantai", meals: [
-            { t: "Aamu", n: "Brunssi", r: "Munakokkelia, pekonia, kahvia." },
-            { t: "Lounas", n: "Kanasalaatti", r: "Perjantain kanan jämät salaatilla, avokadoa, pähkinöitä." },
-            { t: "Päivällinen", n: "Wingsit", r: "500g siipiä uuniin. Dippaa majoneesiin. Kurkkutikkuja." }
+            { n: "Brunssi", r: "Munakokkelia, pekonia, kahvia." },
+            { n: "Kanasalaatti", r: "Perjantain kanan jämät salaatilla, avokadoa, pähkinöitä." },
+            { n: "Wingsit", r: "500g siipiä uuniin. Dippaa majoneesiin. Kurkkutikkuja." },
+            { n: "Leikkelelautanen", r: "Muutama siivu kinkkua/meetvurstia ja juustoa." }
         ]},
         { day: "Sunnuntai", meals: [
-            { t: "Aamu", n: "Smoothie", r: "Mustikkasmoothie." },
-            { t: "Lounas", n: "Wingsien jämät", r: "Loput siivet." },
-            { t: "Päivällinen", n: "Keto-Pizza (tai Tankkaus)", r: "Pohja: 2 munaa+3dl juustoa (uuni 10min). Täyte: pyree, kana, juusto. (Jos Yövuoro: Syö klo 19)." }
+            { n: "Smoothie", r: "Mustikkasmoothie." },
+            { n: "Wingsien jämät", r: "Loput siivet." },
+            { n: "Keto-Pizza (tai Tankkaus)", r: "Pohja: 2 munaa+3dl juustoa (uuni 10min). Täyte: pyree, kana, juusto. (Jos Yövuoro: Syö klo 19)." },
+            { n: "Iltapala / Yöeväs", r: "Turkkilainen jogurtti pähkinöillä." }
         ]}
     ],
     shop: [
@@ -201,7 +209,8 @@ const DATA = {
         ]},
         { c: "Maito/Munat", i: [
             { n: "Munat 15kpl", p: 2.59 }, { n: "Kuohukerma 1L", p: 4.19 },
-            { n: "Voi 500g", p: 3.49 }, { n: "Juustoraaste 500g", p: 3.95 }
+            { n: "Voi 500g", p: 3.49 }, { n: "Juustoraaste 500g", p: 3.95 },
+            { n: "Turkkilainen Jogurtti", p: 2.65 }
         ]},
         { c: "Muut", i: [
             { n: "Tonnikala (4prk)", p: 5.95 }, { n: "Pähkinät", p: 3.49 },
@@ -300,25 +309,34 @@ const app = {
         const list = document.getElementById('meals-list');
         list.innerHTML = '';
 
-        // Määritä ateriajärjestys vuoron mukaan
-        let order = [0, 1, 2]; // Aamu, Lounas, Päivällinen
-        let labels = ["Aamupala (06-08)", "Lounas (11-13)", "Päivällinen (16-18)"];
+        // Oletusjärjestys (Aamuvuoro / Vapaa)
+        // 0: Aamu, 1: Lounas, 2: Päivällinen, 3: Iltapala
+        let order = [0, 1, 2, 3]; 
+        let labels = ["Aamupala (07:00)", "Lounas (11:00)", "Päivällinen (16:30)", "Iltapala (20:30)"];
 
         const isWeekend = (this.state.dayIdx === 5 || this.state.dayIdx === 6);
 
+        // Yövuoro-logiikka (Arkipäivät)
+        // Käännetään rytmi: Herääminen (n. 15), Töihin (n. 19), Töissä (01), Aamulla (07)
         if (this.state.shift === 'night' && !isWeekend) {
-            order = [2, 1, 0]; // Tankkaus (Päivällinen), Eväs (Lounas), Iltapala (Aamu)
-            labels = ["Tankkaus (18:00)", "Eväs (01:00)", "Iltapala (07:00)"];
+            order = [0, 2, 1, 3]; 
+            // 0 (Aamu-tyylinen ruoka) -> Syödään iltapäivällä herätessä
+            // 2 (Päivällinen/Tuhti) -> Syödään ennen töitä tankkauksena
+            // 1 (Lounas/Eväs) -> Syödään töissä yöllä
+            // 3 (Iltapala/Kevyt) -> Syödään aamulla töiden jälkeen ennen unta
+            labels = ["Herääminen (15:00)", "Tankkaus (19:00)", "Yöeväs (01:00)", "Aamupala/Uni (07:00)"];
         }
         
-        // Sunnuntai-ilta logiikka
+        // Sunnuntai-ilta logiikka (Valmistautuminen yöhön)
         if (this.state.dayIdx === 6 && this.state.shift === 'night') {
-             // Sunnuntai: Aamu normaali, Ilta tankkaus
-             labels[2] = "TANKKAUS YÖHÖN (19:00)";
+             // Sunnuntaina syödään aamu/lounas normaalisti, mutta ilta tankataan
+             labels = ["Vapaa Aamu", "Lounas", "TANKKAUS YÖHÖN (19:00)", "Yöeväs (Töihin)"];
         }
 
         order.forEach((mealIdx, i) => {
             const m = d.meals[mealIdx];
+            if (!m) return; // Varotoimi
+            
             const div = document.createElement('div');
             div.className = 'meal-card';
             div.innerHTML = `
@@ -346,31 +364,4 @@ const app = {
 
             cat.i.forEach(item => {
                 total += item.p;
-                const isChecked = this.state.checked.includes(item.n);
-                
-                const div = document.createElement('div');
-                div.className = 'shop-item ' + (isChecked ? 'checked' : '');
-                div.onclick = () => app.toggleShopItem(item.n); // Klikkaa koko riviä
-                
-                div.innerHTML = `
-                    <div style="display:flex; align-items:center;">
-                        <input type="checkbox" ${isChecked ? 'checked' : ''} disabled>
-                        <span>${item.n}</span>
-                    </div>
-                    <b>${item.p.toFixed(2)}€</b>
-                `;
-                list.appendChild(div);
-            });
-        });
-        document.getElementById('total-price').innerText = total.toFixed(2);
-    }
-};
-
-// KÄYNNISTYS (Varmempi tapa kuin window.onload)
-document.addEventListener('DOMContentLoaded', () => {
-    app.init();
-});
-
-</script>
-</body>
-</html>
+                const isChecked = this.state.checked
