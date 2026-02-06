@@ -3,46 +3,39 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Keto-Opas v2.1 (Iltapalalla)</title>
+    <title>Keto-Opas v3.0 (Debug)</title>
     <style>
         body {
-            font-family: sans-serif;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
             background-color: #f4f4f9;
             color: #333;
-            margin: 0;
-            padding: 0;
-            padding-bottom: 100px;
+            margin: 0; padding: 0; padding-bottom: 100px;
         }
-
-        /* --- TYÖKALUT & UI --- */
-        .version-tag {
-            background-color: #8e44ad; /* Violetti v2.1 */
-            color: white;
-            padding: 10px;
-            text-align: center;
-            font-weight: bold;
-        }
-
-        header {
-            background-color: #2c3e50;
-            color: white;
-            padding: 15px;
-            text-align: center;
-        }
-
-        h1, h2 { margin: 0; margin-bottom: 10px; }
         
-        button { cursor: pointer; }
+        /* Virheilmoitusboksi (näkyy vain jos on ongelmia) */
+        #error-box {
+            display: none; background: #e74c3c; color: white; padding: 15px;
+            position: fixed; top: 0; left: 0; width: 100%; z-index: 10000;
+            font-weight: bold; font-size: 14px;
+        }
 
-        /* --- LATAUSRUUTU --- */
+        /* Latausruutu (katoaa automaattisesti 3s kuluttua) */
         #loading-screen {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: white; z-index: 9999;
+            background: white; z-index: 5000;
             display: flex; justify-content: center; align-items: center;
             font-size: 1.5rem; color: #2c3e50;
+            animation: fadeOut 0.5s ease-in-out 2.5s forwards;
+            pointer-events: none; /* Sallii klikkailun jos jää jumiin */
         }
+        @keyframes fadeOut { to { opacity: 0; visibility: hidden; } }
 
-        /* --- PÄIVÄNÄKYMÄ --- */
+        /* UI Elementit */
+        .version-tag { background: #d35400; color: white; padding: 10px; text-align: center; font-weight: bold; }
+        header { background: #2c3e50; color: white; padding: 15px; text-align: center; }
+        h1, h2 { margin: 0 0 10px 0; }
+        button { cursor: pointer; }
+
         .view { display: none; padding: 15px; max-width: 600px; margin: 0 auto; }
         .view.active { display: block; }
 
@@ -69,12 +62,10 @@
         }
         .meal-time { color: #7f8c8d; font-size: 0.9rem; font-weight: bold; display: block; margin-bottom: 5px; }
         .meal-title { font-size: 1.1rem; font-weight: bold; color: #2c3e50; margin-bottom: 10px; }
-
         details { border-top: 1px solid #eee; margin-top: 10px; padding-top: 10px; }
         summary { font-weight: bold; color: #27ae60; outline: none; }
         .recipe-text { margin-top: 10px; line-height: 1.5; font-size: 0.95rem; }
 
-        /* --- KAUPPALISTA --- */
         .shop-item {
             background: white; padding: 12px; margin-bottom: 5px;
             display: flex; justify-content: space-between; align-items: center;
@@ -82,19 +73,15 @@
         }
         .shop-item.checked span { text-decoration: line-through; color: #999; }
         .shop-item input { transform: scale(1.5); margin-right: 10px; }
-        
         .total-box {
-            background: #2c3e50; color: white; padding: 15px;
-            text-align: center; font-size: 1.2rem; font-weight: bold;
-            border-radius: 8px; margin-bottom: 20px;
+            background: #2c3e50; color: white; padding: 15px; text-align: center;
+            font-size: 1.2rem; font-weight: bold; border-radius: 8px; margin-bottom: 20px;
         }
-
         .reset-btn {
             width: 100%; padding: 15px; background: #c0392b; color: white;
             border: none; font-weight: bold; font-size: 1rem; border-radius: 5px; margin-top: 20px;
         }
 
-        /* --- NAVIGAATIO --- */
         .nav-tabs {
             position: fixed; bottom: 0; width: 100%; display: flex;
             background: white; border-top: 1px solid #ccc; height: 60px;
@@ -102,7 +89,7 @@
         .nav-btn { flex: 1; border: none; background: white; font-weight: bold; color: #7f8c8d; }
         .nav-btn.active { color: #2c3e50; border-top: 4px solid #27ae60; }
 
-        /* --- YÖTILA (CSS) --- */
+        /* Yötila */
         body.night-mode { background-color: #222; color: #ddd; }
         body.night-mode .meal-card, body.night-mode .shop-item, body.night-mode .day-controls, body.night-mode .nav-tabs { background: #333; color: #fff; }
         body.night-mode .nav-btn { background: #333; }
@@ -110,14 +97,15 @@
         body.night-mode summary { color: #f1c40f; }
         body.night-mode .shift-btn { background: #333; color: #f1c40f; border-color: #f1c40f; }
         body.night-mode .shift-btn.active { background: #f1c40f; color: #222; }
-
     </style>
 </head>
 <body>
 
+    <div id="error-box"></div>
+
     <div id="loading-screen">Ladataan sovellusta...</div>
 
-    <div class="version-tag">Versio 2.1 - Iltapala lisätty</div>
+    <div class="version-tag">Versio 3.0 - Debug</div>
     <header><h1>Keto-Opas 46v</h1></header>
 
     <div id="view-day" class="view active">
@@ -148,9 +136,15 @@
     </div>
 
 <script>
-/** * TIETOKANTA (Nyt 4 ateriaa per päivä)
- * 0: Aamu, 1: Lounas, 2: Päivällinen, 3: Iltapala
- */
+// Virheenkäsittelijä (näyttää virheet ruudulla)
+window.onerror = function(msg, url, line) {
+    var box = document.getElementById('error-box');
+    box.style.display = 'block';
+    box.innerText = "VIRHE: " + msg + " (Rivi " + line + ")";
+    return false;
+};
+
+// --- DATA ---
 const DATA = {
     week: [
         { day: "Maanantai", meals: [
@@ -219,39 +213,27 @@ const DATA = {
     ]
 };
 
-/**
- * SOVELLUSLOGIIKKA (Namespace 'app')
- */
+// --- LOGIIKKA ---
 const app = {
-    state: {
-        dayIdx: 0,
-        shift: 'morning', // 'morning' | 'night'
-        checked: []
-    },
+    state: { dayIdx: 0, shift: 'morning', checked: [] },
 
     init: function() {
-        // 1. Lataa tallennus
         try {
-            const s = localStorage.getItem('ketoState_v2');
+            const s = localStorage.getItem('ketoState_v3');
             if (s) this.state = JSON.parse(s);
         } catch(e) { console.log("Ei tallennustukea"); }
 
-        // 2. Piilota latausruutu
+        // Piilota latausruutu heti
         document.getElementById('loading-screen').style.display = 'none';
 
-        // 3. Renderöi
         this.renderDay();
         this.renderShop();
         this.updateUI();
     },
 
     save: function() {
-        try {
-            localStorage.setItem('ketoState_v2', JSON.stringify(this.state));
-        } catch(e) {}
+        try { localStorage.setItem('ketoState_v3', JSON.stringify(this.state)); } catch(e) {}
     },
-
-    /* --- TOIMINNOT --- */
 
     changeDay: function(dir) {
         this.state.dayIdx += dir;
@@ -264,14 +246,13 @@ const app = {
     setShift: function(mode) {
         this.state.shift = mode;
         this.save();
-        this.updateUI(); // Vaihtaa teeman
+        this.updateUI();
         this.renderDay();
     },
 
     switchTab: function(tab) {
         document.querySelectorAll('.view').forEach(e => e.classList.remove('active'));
         document.getElementById('view-' + tab).classList.add('active');
-        
         document.querySelectorAll('.nav-btn').forEach(e => e.classList.remove('active'));
         document.getElementById('nav-' + tab).classList.add('active');
     },
@@ -292,10 +273,7 @@ const app = {
         }
     },
 
-    /* --- RENDERÖINTI --- */
-
     updateUI: function() {
-        // Päivitä napit
         const isNight = (this.state.shift === 'night');
         document.body.className = isNight ? 'night-mode' : '';
         document.getElementById('btn-morning').className = isNight ? 'shift-btn' : 'shift-btn active';
@@ -305,37 +283,27 @@ const app = {
     renderDay: function() {
         const d = DATA.week[this.state.dayIdx];
         document.getElementById('day-title').innerText = d.day;
-        
         const list = document.getElementById('meals-list');
         list.innerHTML = '';
 
-        // Oletusjärjestys (Aamuvuoro / Vapaa)
-        // 0: Aamu, 1: Lounas, 2: Päivällinen, 3: Iltapala
-        let order = [0, 1, 2, 3]; 
+        let order = [0, 1, 2, 3];
         let labels = ["Aamupala (07:00)", "Lounas (11:00)", "Päivällinen (16:30)", "Iltapala (20:30)"];
-
         const isWeekend = (this.state.dayIdx === 5 || this.state.dayIdx === 6);
 
-        // Yövuoro-logiikka (Arkipäivät)
-        // Käännetään rytmi: Herääminen (n. 15), Töihin (n. 19), Töissä (01), Aamulla (07)
+        // Yövuoro (Arkipäivät)
         if (this.state.shift === 'night' && !isWeekend) {
-            order = [0, 2, 1, 3]; 
-            // 0 (Aamu-tyylinen ruoka) -> Syödään iltapäivällä herätessä
-            // 2 (Päivällinen/Tuhti) -> Syödään ennen töitä tankkauksena
-            // 1 (Lounas/Eväs) -> Syödään töissä yöllä
-            // 3 (Iltapala/Kevyt) -> Syödään aamulla töiden jälkeen ennen unta
+            order = [0, 2, 1, 3];
             labels = ["Herääminen (15:00)", "Tankkaus (19:00)", "Yöeväs (01:00)", "Aamupala/Uni (07:00)"];
         }
         
-        // Sunnuntai-ilta logiikka (Valmistautuminen yöhön)
+        // Sunnuntai-ilta (Yövuoro valmistelu)
         if (this.state.dayIdx === 6 && this.state.shift === 'night') {
-             // Sunnuntaina syödään aamu/lounas normaalisti, mutta ilta tankataan
              labels = ["Vapaa Aamu", "Lounas", "TANKKAUS YÖHÖN (19:00)", "Yöeväs (Töihin)"];
         }
 
         order.forEach((mealIdx, i) => {
             const m = d.meals[mealIdx];
-            if (!m) return; // Varotoimi
+            if (!m) return;
             
             const div = document.createElement('div');
             div.className = 'meal-card';
@@ -364,4 +332,32 @@ const app = {
 
             cat.i.forEach(item => {
                 total += item.p;
-                const isChecked = this.state.checked
+                const isChecked = this.state.checked.includes(item.n);
+                
+                const div = document.createElement('div');
+                div.className = 'shop-item ' + (isChecked ? 'checked' : '');
+                // Nuolifunktio onclickissä
+                div.onclick = function() { app.toggleShopItem(item.n); };
+                
+                div.innerHTML = `
+                    <div style="display:flex; align-items:center;">
+                        <input type="checkbox" ${isChecked ? 'checked' : ''} disabled>
+                        <span>${item.n}</span>
+                    </div>
+                    <b>${item.p.toFixed(2)}€</b>
+                `;
+                list.appendChild(div);
+            });
+        });
+        document.getElementById('total-price').innerText = total.toFixed(2);
+    }
+};
+
+// Käynnistys
+document.addEventListener('DOMContentLoaded', function() {
+    app.init();
+});
+
+</script>
+</body>
+</html>
