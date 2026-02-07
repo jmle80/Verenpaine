@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Viikon Keto-Ruokalista - Yövuoro alkaa su 21</title>
+    <title>Keto-Ruokalista - Yö- ja Aamuvuorot</title>
     <style>
         * {
             margin: 0;
@@ -11,18 +11,1730 @@
             box-sizing: border-box;
         }
 
+        :root {
+            --night-primary: #8a2be2;
+            --night-secondary: #dda0dd;
+            --morning-primary: #ffc107;
+            --morning-secondary: #ffd700;
+            --weekend-primary: #2ecc71;
+            --accent: #00d9ff;
+            --bg-dark: #1a1a2e;
+            --bg-darker: #16213e;
+            --text-light: #eaeaea;
+            --text-muted: #a0a0a0;
+            --card-bg: rgba(255, 255, 255, 0.05);
+            --border-subtle: rgba(255, 255, 255, 0.1);
+        }
+
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
-            color: #eaeaea;
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            background: linear-gradient(135deg, var(--bg-dark) 0%, var(--bg-darker) 100%);
+            color: var(--text-light);
             min-height: 100vh;
             padding: 20px;
+            line-height: 1.6;
         }
 
         .container {
-            max-width: 1000px;
+            max-width: 900px;
             margin: 0 auto;
         }
 
         h1 {
-           
+            text-align: center;
+            color: var(--accent);
+            margin-bottom: 8px;
+            font-size: clamp(1.5rem, 4vw, 2rem);
+            text-shadow: 0 0 20px rgba(0, 217, 255, 0.3);
+            letter-spacing: -0.5px;
+        }
+
+        .subtitle {
+            text-align: center;
+            color: var(--text-muted);
+            margin-bottom: 25px;
+            font-size: 0.9em;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .shift-indicator {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.85em;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+
+        .shift-indicator.night {
+            background: rgba(138, 43, 226, 0.2);
+            color: var(--night-secondary);
+            border: 1px solid var(--night-primary);
+        }
+
+        .shift-indicator.morning {
+            background: rgba(255, 193, 7, 0.2);
+            color: var(--morning-secondary);
+            border: 1px solid var(--morning-primary);
+        }
+
+        /* Tab Navigation */
+        .tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 25px;
+            background: var(--card-bg);
+            padding: 5px;
+            border-radius: 50px;
+            border: 1px solid var(--border-subtle);
+        }
+
+        .tab {
+            flex: 1;
+            padding: 12px 20px;
+            background: transparent;
+            border: none;
+            border-radius: 25px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: 600;
+            color: var(--text-muted);
+            font-size: 0.95em;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .tab:hover {
+            color: var(--text-light);
+            background: rgba(255, 255, 255, 0.03);
+        }
+
+        .tab.active {
+            background: rgba(0, 217, 255, 0.15);
+            color: var(--accent);
+            box-shadow: 0 4px 15px rgba(0, 217, 255, 0.1);
+        }
+
+        .content-section {
+            display: none;
+            animation: fadeIn 0.4s ease;
+        }
+
+        .content-section.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Week Selector */
+        .week-selector {
+            background: var(--card-bg);
+            padding: 20px;
+            border-radius: 20px;
+            margin-bottom: 20px;
+            border: 1px solid var(--border-subtle);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .week-selector::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, var(--night-primary), var(--morning-primary));
+        }
+
+        .week-selector h3 {
+            color: var(--accent);
+            margin-bottom: 15px;
+            text-align: center;
+            font-size: 1.1em;
+        }
+
+        .week-toggle {
+            display: flex;
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 50px;
+            padding: 4px;
+            position: relative;
+        }
+
+        .week-btn {
+            flex: 1;
+            padding: 14px 20px;
+            background: transparent;
+            border: none;
+            color: var(--text-muted);
+            border-radius: 25px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: 600;
+            font-size: 0.95em;
+            position: relative;
+            z-index: 2;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .week-btn small {
+            font-size: 0.75em;
+            opacity: 0.8;
+            font-weight: 400;
+        }
+
+        .week-btn.active {
+            color: white;
+        }
+
+        .week-btn.night.active {
+            background: var(--night-primary);
+            box-shadow: 0 4px 20px rgba(138, 43, 226, 0.4);
+        }
+
+        .week-btn.morning.active {
+            background: var(--morning-primary);
+            color: var(--bg-dark);
+            box-shadow: 0 4px 20px rgba(255, 193, 7, 0.3);
+        }
+
+        /* Day Navigation */
+        .day-nav {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 8px;
+            margin-bottom: 20px;
+        }
+
+        .day-btn {
+            padding: 12px 4px;
+            background: var(--card-bg);
+            border: 1px solid var(--border-subtle);
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-weight: 600;
+            color: var(--text-muted);
+            font-size: 0.85em;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .day-btn:hover {
+            transform: translateY(-2px);
+            background: rgba(255, 255, 255, 0.08);
+            border-color: var(--accent);
+            color: var(--text-light);
+        }
+
+        .day-btn.active {
+            background: rgba(0, 217, 255, 0.2);
+            border-color: var(--accent);
+            color: var(--accent);
+            box-shadow: 0 4px 12px rgba(0, 217, 255, 0.15);
+        }
+
+        .day-btn.weekend {
+            border-color: rgba(46, 204, 113, 0.3);
+            color: var(--weekend-primary);
+        }
+
+        .day-btn.weekend.active {
+            background: rgba(46, 204, 113, 0.2);
+            border-color: var(--weekend-primary);
+            color: var(--weekend-primary);
+            box-shadow: 0 4px 12px rgba(46, 204, 113, 0.15);
+        }
+
+        .day-btn .shift-icon {
+            display: block;
+            font-size: 1.2em;
+            margin-bottom: 2px;
+        }
+
+        /* Day Content */
+        .day-content {
+            display: none;
+        }
+
+        .day-content.active {
+            display: block;
+            animation: slideIn 0.4s ease;
+        }
+
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateX(-10px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+
+        .shift-header {
+            text-align: center;
+            padding: 18px;
+            border-radius: 15px;
+            margin-bottom: 25px;
+            font-weight: 700;
+            font-size: 1.1em;
+            letter-spacing: 0.5px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .shift-header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            opacity: 0.1;
+            z-index: 0;
+        }
+
+        .shift-header.night {
+            background: rgba(138, 43, 226, 0.15);
+            border: 2px solid var(--night-primary);
+            color: var(--night-secondary);
+        }
+
+        .shift-header.night::before {
+            background: var(--night-primary);
+        }
+
+        .shift-header.morning {
+            background: rgba(255, 193, 7, 0.15);
+            border: 2px solid var(--morning-primary);
+            color: var(--morning-secondary);
+        }
+
+        .shift-header.morning::before {
+            background: var(--morning-primary);
+        }
+
+        .shift-header.weekend {
+            background: rgba(46, 204, 113, 0.15);
+            border: 2px solid var(--weekend-primary);
+            color: var(--weekend-primary);
+        }
+
+        /* Meal Cards */
+        .meal-card {
+            background: var(--card-bg);
+            border-radius: 16px;
+            padding: 24px;
+            margin-bottom: 20px;
+            border-left: 4px solid var(--accent);
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .meal-card:hover {
+            transform: translateX(5px);
+            background: rgba(255, 255, 255, 0.08);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        }
+
+        .meal-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, rgba(0, 217, 255, 0.03), transparent);
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        .meal-card:hover::before {
+            opacity: 1;
+        }
+
+        .meal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 12px;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .meal-time {
+            color: var(--accent);
+            font-size: 0.8em;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .meal-title {
+            font-size: 1.25em;
+            color: #fff;
+            margin-bottom: 8px;
+            font-weight: 700;
+            letter-spacing: -0.3px;
+        }
+
+        .meal-desc {
+            color: var(--text-muted);
+            line-height: 1.6;
+            margin-bottom: 15px;
+            font-size: 0.95em;
+        }
+
+        .meal-meta {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+            flex-wrap: wrap;
+            margin-bottom: 15px;
+        }
+
+        .prep-time {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: rgba(0, 217, 255, 0.1);
+            color: var(--accent);
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 0.8em;
+            font-weight: 600;
+        }
+
+        .macros {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .macro-item {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 6px 12px;
+            border-radius: 8px;
+            font-size: 0.8em;
+            color: #888;
+            font-weight: 500;
+            border: 1px solid var(--border-subtle);
+        }
+
+        .macro-item strong {
+            color: var(--text-light);
+        }
+
+        /* Expandable Recipe Details */
+        .recipe-toggle {
+            background: rgba(0, 0, 0, 0.2);
+            border: 1px solid var(--border-subtle);
+            border-radius: 10px;
+            padding: 12px 16px;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            color: var(--accent);
+            font-weight: 600;
+            font-size: 0.9em;
+            transition: all 0.3s;
+            margin-top: 10px;
+        }
+
+        .recipe-toggle:hover {
+            background: rgba(0, 217, 255, 0.1);
+            border-color: var(--accent);
+        }
+
+        .recipe-toggle::after {
+            content: '▼';
+            font-size: 0.8em;
+            transition: transform 0.3s;
+        }
+
+        .recipe-toggle.active::after {
+            transform: rotate(180deg);
+        }
+
+        .recipe-details {
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 0 0 10px 10px;
+            padding: 0;
+            max-height: 0;
+            overflow: hidden;
+            transition: all 0.4s ease;
+            border: 1px solid transparent;
+            border-top: none;
+        }
+
+        .recipe-details.expanded {
+            padding: 20px;
+            max-height: 1000px;
+            border-color: var(--border-subtle);
+        }
+
+        .recipe-title {
+            color: var(--morning-secondary);
+            font-weight: 700;
+            margin-bottom: 12px;
+            font-size: 1em;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .ingredients {
+            margin-bottom: 15px;
+        }
+
+        .ingredients strong {
+            color: var(--text-light);
+            display: block;
+            margin-bottom: 8px;
+            font-size: 0.9em;
+        }
+
+        .ingredients ul {
+            list-style: none;
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 6px;
+        }
+
+        .ingredients li {
+            padding: 6px 0;
+            color: #ccc;
+            font-size: 0.9em;
+            padding-left: 20px;
+            position: relative;
+        }
+
+        .ingredients li::before {
+            content: "•";
+            color: var(--accent);
+            position: absolute;
+            left: 5px;
+            font-weight: bold;
+        }
+
+        .instructions {
+            color: #aaa;
+            font-size: 0.9em;
+            line-height: 1.7;
+        }
+
+        .instructions ol {
+            padding-left: 20px;
+        }
+
+        .instructions li {
+            margin-bottom: 8px;
+            padding-left: 5px;
+        }
+
+        .instructions li::marker {
+            color: var(--accent);
+            font-weight: bold;
+        }
+
+        /* Special Boxes */
+        .blueberry-box {
+            background: rgba(138, 43, 226, 0.1);
+            border-left: 4px solid var(--night-primary);
+            padding: 14px;
+            border-radius: 0 12px 12px 0;
+            margin-top: 15px;
+            color: var(--night-secondary);
+            font-size: 0.9em;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-weight: 500;
+        }
+
+        .tip-box {
+            background: rgba(46, 204, 113, 0.1);
+            border-left: 4px solid var(--weekend-primary);
+            padding: 12px;
+            border-radius: 0 10px 10px 0;
+            margin-top: 15px;
+            font-size: 0.85em;
+            color: #90ee90;
+            display: flex;
+            align-items: flex-start;
+            gap: 8px;
+        }
+
+        /* Shopping List */
+        .shopping-list {
+            background: var(--card-bg);
+            border-radius: 20px;
+            padding: 25px;
+            border: 1px solid var(--border-subtle);
+        }
+
+        .shopping-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 25px;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+
+        .shopping-header h2 {
+            color: var(--accent);
+            font-size: 1.3em;
+        }
+
+        .filter-buttons {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .filter-btn {
+            padding: 8px 16px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--border-subtle);
+            border-radius: 20px;
+            color: var(--text-muted);
+            cursor: pointer;
+            font-size: 0.85em;
+            transition: all 0.3s;
+        }
+
+        .filter-btn:hover, .filter-btn.active {
+            background: rgba(0, 217, 255, 0.15);
+            border-color: var(--accent);
+            color: var(--accent);
+        }
+
+        .shopping-category {
+            margin-bottom: 25px;
+        }
+
+        .category-title {
+            color: var(--accent);
+            font-size: 1.1em;
+            margin-bottom: 12px;
+            padding-bottom: 8px;
+            border-bottom: 2px solid rgba(0, 217, 255, 0.2);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .shopping-items {
+            display: grid;
+            gap: 8px;
+        }
+
+        .shopping-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 14px;
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: 10px;
+            border: 1px solid var(--border-subtle);
+            transition: all 0.2s;
+            cursor: pointer;
+        }
+
+        .shopping-item:hover {
+            background: rgba(255, 255, 255, 0.06);
+            transform: translateX(3px);
+        }
+
+        .shopping-item.checked {
+            opacity: 0.5;
+            border-left: 4px solid var(--weekend-primary);
+        }
+
+        .shopping-item.checked .product-name {
+            text-decoration: line-through;
+        }
+
+        .item-left {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .checkbox {
+            width: 20px;
+            height: 20px;
+            border: 2px solid var(--border-subtle);
+            border-radius: 5px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+            flex-shrink: 0;
+        }
+
+        .shopping-item.checked .checkbox {
+            background: var(--weekend-primary);
+            border-color: var(--weekend-primary);
+        }
+
+        .checkbox::after {
+            content: '✓';
+            color: white;
+            font-size: 0.8em;
+            opacity: 0;
+        }
+
+        .shopping-item.checked .checkbox::after {
+            opacity: 1;
+        }
+
+        .product-name {
+            font-weight: 600;
+            color: #fff;
+        }
+
+        .product-amount {
+            color: var(--text-muted);
+            font-size: 0.85em;
+            margin-left: 8px;
+        }
+
+        .product-price {
+            color: var(--accent);
+            font-weight: 700;
+            font-size: 0.95em;
+        }
+
+        .summary-box {
+            background: rgba(255, 193, 7, 0.1);
+            border-left: 4px solid var(--morning-primary);
+            padding: 20px;
+            border-radius: 0 15px 15px 0;
+            margin: 25px 0;
+        }
+
+        .summary-box h4 {
+            color: var(--morning-secondary);
+            margin-bottom: 10px;
+            font-size: 1.1em;
+        }
+
+        .total-box {
+            text-align: center;
+            padding: 25px;
+            background: linear-gradient(135deg, rgba(0, 217, 255, 0.1), rgba(0, 217, 255, 0.05));
+            border-radius: 15px;
+            margin-top: 25px;
+            border: 1px solid rgba(0, 217, 255, 0.2);
+        }
+
+        .total-price {
+            font-size: 2.5em;
+            color: var(--accent);
+            font-weight: 800;
+            text-shadow: 0 0 20px rgba(0, 217, 255, 0.3);
+        }
+
+        .total-label {
+            color: var(--text-muted);
+            font-size: 0.9em;
+            margin-top: 5px;
+        }
+
+        /* Responsive */
+        @media (max-width: 600px) {
+            body {
+                padding: 15px;
+            }
+
+            .day-nav {
+                grid-template-columns: repeat(4, 1fr);
+                gap: 6px;
+            }
+
+            .day-btn {
+                padding: 10px 2px;
+                font-size: 0.8em;
+            }
+
+            .week-btn {
+                padding: 12px 10px;
+                font-size: 0.85em;
+            }
+
+            .meal-card {
+                padding: 18px;
+            }
+
+            .meal-header {
+                flex-direction: column;
+            }
+
+            .ingredients ul {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* Print styles */
+        @media print {
+            body {
+                background: white;
+                color: black;
+            }
+            
+            .tabs, .week-selector, .day-nav, .recipe-toggle {
+                display: none;
+            }
+            
+            .day-content {
+                display: block !important;
+                page-break-after: always;
+            }
+        }
+
+        /* Loading animation */
+        .skeleton {
+            background: linear-gradient(90deg, rgba(255,255,255,0.05) 25%, rgba(255,255,255,0.1) 50%, rgba(255,255,255,0.05) 75%);
+            background-size: 200% 100%;
+            animation: loading 1.5s infinite;
+            border-radius: 8px;
+        }
+
+        @keyframes loading {
+            0% { background-position: 200% 0; }
+            100% { background-position: -200% 0; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🥑 Keto-Ruokalista</h1>
+        <p class="subtitle">
+            <span class="shift-indicator night">🌙 Pariton viikko: Yövuoro</span>
+            <span style="color: #555;">|</span>
+            <span class="shift-indicator morning">🌅 Parillinen viikko: Aamuvuoro</span>
+        </p>
+
+        <div class="tabs">
+            <button class="tab active" onclick="showTab('meal-plan')">
+                <span>📅</span> Ruokalista
+            </button>
+            <button class="tab" onclick="showTab('shopping')">
+                <span>🛒</span> Ostoslista
+            </button>
+        </div>
+
+        <!-- Ruokalista -->
+        <div id="meal-plan" class="content-section active">
+            
+            <div class="week-selector">
+                <h3>Valitse viikko</h3>
+                <div class="week-toggle">
+                    <button class="week-btn night active" onclick="selectWeek('night')">
+                        🌙 Pariton
+                        <small>Yövuoro 21-06</small>
+                    </button>
+                    <button class="week-btn morning" onclick="selectWeek('morning')">
+                        🌅 Parillinen
+                        <small>Aamuvuoro 06-14</small>
+                    </button>
+                </div>
+            </div>
+
+            <!-- PARITON VIIKKO: YÖVUORO -->
+            <div id="week-night" class="week-content">
+                <div class="day-nav">
+                    <button class="day-btn active" onclick="showDay('su-night', 'week-night')">
+                        <span class="shift-icon">🌙</span>
+                        Su
+                    </button>
+                    <button class="day-btn" onclick="showDay('ma-night', 'week-night')">
+                        <span class="shift-icon">🌙</span>
+                        Ma
+                    </button>
+                    <button class="day-btn" onclick="showDay('ti-night', 'week-night')">
+                        <span class="shift-icon">🌙</span>
+                        Ti
+                    </button>
+                    <button class="day-btn" onclick="showDay('ke-night', 'week-night')">
+                        <span class="shift-icon">🌙</span>
+                        Ke
+                    </button>
+                    <button class="day-btn" onclick="showDay('to-night', 'week-night')">
+                        <span class="shift-icon">🌙</span>
+                        To
+                    </button>
+                    <button class="day-btn weekend" onclick="showDay('pe-free', 'week-night')">
+                        <span class="shift-icon">✨</span>
+                        Pe
+                    </button>
+                    <button class="day-btn weekend" onclick="showDay('la-free', 'week-night')">
+                        <span class="shift-icon">✨</span>
+                        La
+                    </button>
+                </div>
+
+                <!-- SUNNUNTAI -->
+                <div id="su-night" class="day-content active">
+                    <div class="shift-header night">
+                        <span>🌙</span>
+                        SUNNUNTAI - YÖVUORO ALKAA (21:00-06:00)
+                    </div>
+                    
+                    <div class="meal-card">
+                        <div class="meal-header">
+                            <div class="meal-time">🕐 19:00 - Ennen vuoroa</div>
+                        </div>
+                        <div class="meal-title">Rasvainen Ateria</div>
+                        <div class="meal-desc">3 munaa paistettuna voissa (30g), 2 viipaletta pekonia, 1/4 avokado, juustoraastetta. Pitää nälän loitolla koko yön.</div>
+                        
+                        <div class="meal-meta">
+                            <span class="prep-time">⏱️ 10 min</span>
+                            <div class="macros">
+                                <span class="macro-item"><strong>R:</strong> 50g</span>
+                                <span class="macro-item"><strong>P:</strong> 25g</span>
+                                <span class="macro-item"><strong>HH:</strong> 3g</span>
+                            </div>
+                        </div>
+
+                        <div class="recipe-toggle" onclick="toggleRecipe(this)">
+                            <span>📖 Näytä resepti</span>
+                        </div>
+                        
+                        <div class="recipe-details">
+                            <div class="recipe-title">🍳 Valmistusohje</div>
+                            <div class="ingredients">
+                                <strong>Ainekset:</strong>
+                                <ul>
+                                    <li>3 kananmunaa</li>
+                                    <li>30g voita</li>
+                                    <li>2 viipaletta pekonia</li>
+                                    <li>1/4 avokado</li>
+                                    <li>30g juustoraastetta</li>
+                                    <li>Suolaa ja pippuria</li>
+                                </ul>
+                            </div>
+                            <div class="instructions">
+                                <ol>
+                                    <li>Kuumenna paistinpannu keskilämmöllä ja lisää 15g voita</li>
+                                    <li>Paista pekonit rapeiksi (3-4 min per puoli), nosta sivuun</li>
+                                    <li>Lisää loput voi pannuun</li>
+                                    <li>Riko munat kulhoon, vispaa kevyesti haarukalla</li>
+                                    <li>Kaada munat pannuun, anna asettua 10 sek</li>
+                                    <li>Työnnä reunoja keskelle lastalla kunnes hyytyvät</li>
+                                    <li>Ripottele juusto päälle, taita munakas kahtia</li>
+                                    <li>Tarjoile pekonin ja avokadon kanssa</li>
+                                </ol>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="meal-card">
+                        <div class="meal-header">
+                            <div class="meal-time">🕐 01:00 - Vuoron puolivälissä</div>
+                        </div>
+                        <div class="meal-title">Broileri-salaatti Eväät</div>
+                        <div class="meal-desc">Broilerin fileesuikaleet (150g) paistettuna, jääsalaatti, kurkku, oliiviöljy, sitruuna. Pakattu eväsrasiaan.</div>
+                        
+                        <div class="meal-meta">
+                            <span class="prep-time">⏱️ 5 min (valmiista)</span>
+                            <div class="macros">
+                                <span class="macro-item"><strong>R:</strong> 30g</span>
+                                <span class="macro-item"><strong>P:</strong> 35g</span>
+                                <span class="macro-item"><strong>HH:</strong> 4g</span>
+                            </div>
+                        </div>
+
+                        <div class="recipe-toggle" onclick="toggleRecipe(this)">
+                            <span>📖 Näytä resepti</span>
+                        </div>
+                        
+                        <div class="recipe-details">
+                            <div class="recipe-title">🥗 Valmistusohje (tee edellisenä iltana)</div>
+                            <div class="ingredients">
+                                <strong>Ainekset:</strong>
+                                <ul>
+                                    <li>150g broilerin fileesuikaleita</li>
+                                    <li>100g jääsalaattia</li>
+                                    <li>1/2 kurkku</li>
+                                    <li>2 rkl oliiviöljyä</li>
+                                    <li>1 rkl sitruunamehua</li>
+                                    <li>Suolaa ja pippuria</li>
+                                </ul>
+                            </div>
+                            <div class="instructions">
+                                <ol>
+                                    <li>Paista broilerisuikaleet pannulla kypsiksi (5-6 min), jäähdytä</li>
+                                    <li>Revittele jääsalaatti eväsrasiaan</li>
+                                    <li>Viipaloi kurkku ohuiksi viipaleiksi</li>
+                                    <li>Laita broileri päälle</li>
+                                    <li>Sekoita öljy ja sitruunamehu erillisessä pienessä rasiassa (kaada vasta syödessä)</li>
+                                    <li>Säilytä jääkaapissa yön yli</li>
+                                </ol>
+                            </div>
+                            <div class="tip-box">
+                                <span>💡</span>
+                                <span>Älä kaada kastiketta etukäteen - salaatti menee veteläksi!</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="meal-card">
+                        <div class="meal-header">
+                            <div class="meal-time">🕐 07:00 - Vuoron jälkeen</div>
+                        </div>
+                        <div class="meal-title">Kirjolohi & Voipinaatti</div>
+                        <div class="meal-desc">Kirjolohifilee (200g) paistettuna voissa, tuorepinaatti (100g) paistettuna samassa voissa, valkosipulia. Rauhoittaa ennen nukkumaanmenoa.</div>
+                        
+                        <div class="meal-meta">
+                            <span class="prep-time">⏱️ 15 min</span>
+                            <div class="macros">
+                                <span class="macro-item"><strong>R:</strong> 40g</span>
+                                <span class="macro-item"><strong>P:</strong> 38g</span>
+                                <span class="macro-item"><strong>HH:</strong> 3g</span>
+                            </div>
+                        </div>
+
+                        <div class="blueberry-box">
+                            <span>🫐</span>
+                            <span>Mustikat 40g jogurtin kanssa ennen nukkumaanmenoa</span>
+                        </div>
+
+                        <div class="recipe-toggle" onclick="toggleRecipe(this)">
+                            <span>📖 Näytä resepti</span>
+                        </div>
+                        
+                        <div class="recipe-details">
+                            <div class="recipe-title">🐟 Valmistusohje</div>
+                            <div class="ingredients">
+                                <strong>Ainekset:</strong>
+                                <ul>
+                                    <li>200g kirjolohifileetä</li>
+                                    <li>30g voita</li>
+                                    <li>100g tuorepinaattia</li>
+                                    <li>1 valkosipulinkyntti</li>
+                                    <li>1/2 sitruunan mehu</li>
+                                    <li>Suolaa ja pippuria</li>
+                                </ul>
+                            </div>
+                            <div class="instructions">
+                                <ol>
+                                    <li>Ota lohi jääkaapista 15 min ennen paistamista</li>
+                                    <li>Kuivaa lohi talouspaperilla, mausta suolalla ja pippurilla</li>
+                                    <li>Kuumenna pannu keskilämmöllä, lisää 15g voita</li>
+                                    <li>Paista lohi nahkapuoli alaspäin 4-5 min (älä liikuuta)</li>
+                                    <li>Käännä varovasti, paista 2-3 min toiselta puolelta</li>
+                                    <li>Nosta lautaselle, purista päälle sitruunamehua</li>
+                                    <li>Samaan pannuun: lisää loput voi ja hienonnettu valkosipuli</li>
+                                    <li>Lisää pinaatti, paista 1-2 min kunnes nuutuu</li>
+                                    <li>Mausta suolalla, tarjoile lohen kanssa</li>
+                                </ol>
+                            </div>
+                            <div class="tip-box">
+                                <span>💡</span>
+                                <span>Uniystävällinen: Lohi sisältää tryptofaania ja magnesiumia jotka edistävät unta!</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="meal-card">
+                        <div class="meal-header">
+                            <div class="meal-time">🕐 16:00 - Herättyä</div>
+                        </div>
+                        <div class="meal-title">Keto-jogurtti</div>
+                        <div class="meal-desc">Turkkilainen jogurtti (200g), kuohukermaa (2rkl), pähkinöitä (15g).</div>
+                        
+                        <div class="meal-meta">
+                            <span class="prep-time">⏱️ 2 min</span>
+                            <div class="macros">
+                                <span class="macro-item"><strong>R:</strong> 22g</span>
+                                <span class="macro-item"><strong>P:</strong> 12g</span>
+                                <span class="macro-item"><strong>HH:</strong> 6g</span>
+                            </div>
+                        </div>
+
+                        <div class="blueberry-box">
+                            <span>🫐</span>
+                            <span>Mustikat 50g</span>
+                        </div>
+
+                        <div class="recipe-toggle" onclick="toggleRecipe(this)">
+                            <span>📖 Näytä resepti</span>
+                        </div>
+                        
+                        <div class="recipe-details">
+                            <div class="recipe-title">🥣 Valmistusohje</div>
+                            <div class="ingredients">
+                                <strong>Ainekset:</strong>
+                                <ul>
+                                    <li>200g turkkilaista jogurttia</li>
+                                    <li>2 rkl kuohukermaa</li>
+                                    <li>15g pähkinöitä (saksanpähkinät tai mantelit)</li>
+                                    <li>50g mustikoita</li>
+                                </ul>
+                            </div>
+                            <div class="instructions">
+                                <ol>
+                                    <li>Laita jogurtti kulhoon</li>
+                                    <li>Kaada kerma päälle</li>
+                                    <li>Rouhi pähkinät karkeasti veitsellä</li>
+                                    <li>Ripottele pähkinät päälle</li>
+                                    <li>Lisää mustikat</li>
+                                    <li>Sekoita kevyesti ja nauti</li>
+                                </ol>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- MAANANTAI -->
+                <div id="ma-night" class="day-content">
+                    <div class="shift-header night">
+                        <span>🌙</span>
+                        MAANANTAI - YÖVUORO (21:00-06:00)
+                    </div>
+                    
+                    <div class="meal-card">
+                        <div class="meal-header">
+                            <div class="meal-time">🕐 19:30 - Ennen vuoroa</div>
+                        </div>
+                        <div class="meal-title">Naudan Jauheliha & Tomaatti</div>
+                        <div class="meal-desc">Naudan jauheliha (200g) paistettuna sipulin kanssa, tomaatti (1 kpl) viipaleina, juustoraastetta päälle.</div>
+                        
+                        <div class="meal-meta">
+                            <span class="prep-time">⏱️ 12 min</span>
+                            <div class="macros">
+                                <span class="macro-item"><strong>R:</strong> 45g</span>
+                                <span class="macro-item"><strong>P:</strong> 35g</span>
+                                <span class="macro-item"><strong>HH:</strong> 6g</span>
+                            </div>
+                        </div>
+
+                        <div class="recipe-toggle" onclick="toggleRecipe(this)">
+                            <span>📖 Näytä resepti</span>
+                        </div>
+                        
+                        <div class="recipe-details">
+                            <div class="recipe-title">🥩 Valmistusohje</div>
+                            <div class="ingredients">
+                                <strong>Ainekset:</strong>
+                                <ul>
+                                    <li>200g naudan jauhelihaa (20% rasvaa)</li>
+                                    <li>1/2 sipulia hienonnettuna</li>
+                                    <li>1 tomaatti viipaleina</li>
+                                    <li>30g juustoraastetta</li>
+                                    <li>15g voita</li>
+                                    <li>Suolaa, pippuria, paprikajauhetta</li>
+                                </ul>
+                            </div>
+                            <div class="instructions">
+                                <ol>
+                                    <li>Kuumenna pannu kuumaksi, lisää voi</li>
+                                    <li>Kuullota sipuli 2 min kunnes läpinäkyvä</li>
+                                    <li>Lisää jauheliha, ruskista 5-7 min rikoen rakennetta</li>
+                                    <li>Mausta suolalla, pippurilla ja paprikajauheella</li>
+                                    <li>Lisää tomaattiviipaleet päälle</li>
+                                    <li>Peitä kannella, anna lämmetä 2 min</li>
+                                    <li>Ripottele juusto päälle, anna sulaa</li>
+                                    <li>Tarjoile heti</li>
+                                </ol>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="meal-card">
+                        <div class="meal-header">
+                            <div class="meal-time">🕐 01:00 - Vuoron puolivälissä</div>
+                        </div>
+                        <div class="meal-title">Munat & Avokado</div>
+                        <div class="meal-desc">2 keitettyä munaa, 1/2 avokado, oliiviöljyä, suolaa. Nopea syödä tauolla.</div>
+                        
+                        <div class="meal-meta">
+                            <span class="prep-time">⏱️ 5 min</span>
+                            <div class="macros">
+                                <span class="macro-item"><strong>R:</strong> 28g</span>
+                                <span class="macro-item"><strong>P:</strong> 14g</span>
+                                <span class="macro-item"><strong>HH:</strong> 4g</span>
+                            </div>
+                        </div>
+
+                        <div class="recipe-toggle" onclick="toggleRecipe(this)">
+                            <span>📖 Näytä resepti</span>
+                        </div>
+                        
+                        <div class="recipe-details">
+                            <div class="recipe-title">🥚 Valmistusohje (tee etukäteen)</div>
+                            <div class="ingredients">
+                                <strong>Ainekset:</strong>
+                                <ul>
+                                    <li>2 kananmunaa (keitetyt)</li>
+                                    <li>1/2 avokado</li>
+                                    <li>1 rkl oliiviöljyä</li>
+                                    <li>Suolaa ja pippuria</li>
+                                    <li>Sitruunamehua</li>
+                                </ul>
+                            </div>
+                            <div class="instructions">
+                                <ol>
+                                    <li>Keitä munat etukäteen: kiehauta vesi, keitä 6-7 min, jäähdytä kylmällä vedellä</li>
+                                    <li>Säilytä kuorineen jääkaapissa</li>
+                                    <li>Töissä: Kuori munat, viipaloi</li>
+                                    <li>Halkaise avokado, poista kivi</li>
+                                    <li>Laita lautaselle, pirskottele öljy</li>
+                                    <li>Mausta suolalla ja pippurilla</li>
+                                    <li>Purista päälle sitruunamehu</li>
+                                </ol>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="meal-card">
+                        <div class="meal-header">
+                            <div class="meal-time">🕐 07:00 - Vuoron jälkeen</div>
+                        </div>
+                        <div class="meal-title">Kirjolohi & Parsakaali</div>
+                        <div class="meal-desc">Kirjolohifilee (200g) paistettuna, parsakaali (150g) höyrytettynä, voisulaa päälle.</div>
+                        
+                        <div class="meal-meta">
+                            <span class="prep-time">⏱️ 15 min</span>
+                            <div class="macros">
+                                <span class="macro-item"><strong>R:</strong> 38g</span>
+                                <span class="macro-item"><strong>P:</strong> 40g</span>
+                                <span class="macro-item"><strong>HH:</strong> 5g</span>
+                            </div>
+                        </div>
+
+                        <div class="blueberry-box">
+                            <span>🫐</span>
+                            <span>Mustikat 30g ennen nukkumaanmenoa</span>
+                        </div>
+
+                        <div class="recipe-toggle" onclick="toggleRecipe(this)">
+                            <span>📖 Näytä resepti</span>
+                        </div>
+                        
+                        <div class="recipe-details">
+                            <div class="recipe-title">🐟🥦 Valmistusohje</div>
+                            <div class="ingredients">
+                                <strong>Ainekset:</strong>
+                                <ul>
+                                    <li>200g kirjolohifileetä</li>
+                                    <li>150g parsakaalia</li>
+                                    <li>25g voita</li>
+                                    <li>1 tl sitruunamehua</li>
+                                    <li>Suolaa ja pippuria</li>
+                                </ul>
+                            </div>
+                            <div class="instructions">
+                                <ol>
+                                    <li>Leikkaa parsakaali pieniksi nupuiksi</li>
+                                    <li>Laita kattilaan 1 dl vettä ja parsakaali</li>
+                                    <li>Keitä kannen alla 5 min kunnes pehmeää mutta napakkaa</li>
+                                    <li>Valuta vesi pois, lisää 10g voita, sekoita</li>
+                                    <li>Samanaikaisesti: Kuumenna pannu, lisää 15g voita</li>
+                                    <li>Paista lohi 3-4 min per puoli</li>
+                                    <li>Mausta suolalla ja pippurilla</li>
+                                    <li>Tarjoile parsakaalin kanssa, pirskottele sitruunamehu</li>
+                                </ol>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="meal-card">
+                        <div class="meal-header">
+                            <div class="meal-time">🕐 16:00 - Herättyä</div>
+                        </div>
+                        <div class="meal-title">Tonnikala-salaatti</div>
+                        <div class="meal-desc">Tonnikala (1 prk), jääsalaatti, kurkku, majoneesi (2rkl), oliiviöljy.</div>
+                        
+                        <div class="meal-meta">
+                            <span class="prep-time">⏱️ 5 min</span>
+                            <div class="macros">
+                                <span class="macro-item"><strong>R:</strong> 25g</span>
+                                <span class="macro-item"><strong>P:</strong> 28g</span>
+                                <span class="macro-item"><strong>HH:</strong> 4g</span>
+                            </div>
+                        </div>
+
+                        <div class="blueberry-box">
+                            <span>🫐</span>
+                            <span>Mustikat 40g</span>
+                        </div>
+
+                        <div class="recipe-toggle" onclick="toggleRecipe(this)">
+                            <span>📖 Näytä resepti</span>
+                        </div>
+                        
+                        <div class="recipe-details">
+                            <div class="recipe-title">🐟 Valmistusohje</div>
+                            <div class="ingredients">
+                                <strong>Ainekset:</strong>
+                                <ul>
+                                    <li>1 prk tonnikalaa vedessä (valuta)</li>
+                                    <li>100g jääsalaattia</li>
+                                    <li>1/2 kurkku</li>
+                                    <li>2 rkl majoneesia</li>
+                                    <li>1 rkl oliiviöljyä</li>
+                                    <li>Sitruunamehua</li>
+                                </ul>
+                            </div>
+                            <div class="instructions">
+                                <ol>
+                                    <li>Valuta tonnikala huolellisesti</li>
+                                    <li>Revittele salaatti kulhoon</li>
+                                    <li>Viipaloi kurkku</li>
+                                    <li>Lisää tonnikala</li>
+                                    <li>Sekoita majoneesi, öljy ja sitruunamehu</li>
+                                    <li>Kaada kastike salaatin päälle</li>
+                                    <li>Seosta kevyesti</li>
+                                </ol>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- TIISTAI -->
+                <div id="ti-night" class="day-content">
+                    <div class="shift-header night">
+                        <span>🌙</span>
+                        TIISTAI - YÖVUORO (21:00-06:00)
+                    </div>
+                    
+                    <div class="meal-card">
+                        <div class="meal-header">
+                            <div class="meal-time">🕐 19:30 - Ennen vuoroa</div>
+                        </div>
+                        <div class="meal-title">Broilerin Paistileike & Kesäkurpitsa</div>
+                        <div class="meal-desc">Broilerin paistileike (200g) paistettuna, kesäkurpitsa (1 kpl) viipaleina paistettuna voissa.</div>
+                        
+                        <div class="meal-meta">
+                            <span class="prep-time">⏱️ 15 min</span>
+                            <div class="macros">
+                                <span class="macro-item"><strong>R:</strong> 32g</span>
+                                <span class="macro-item"><strong>P:</strong> 40g</span>
+                                <span class="macro-item"><strong>HH:</strong> 5g</span>
+                            </div>
+                        </div>
+
+                        <div class="recipe-toggle" onclick="toggleRecipe(this)">
+                            <span>📖 Näytä resepti</span>
+                        </div>
+                        
+                        <div class="recipe-details">
+                            <div class="recipe-title">🍗 Valmistusohje</div>
+                            <div class="ingredients">
+                                <strong>Ainekset:</strong>
+                                <ul>
+                                    <li>200g broilerin paistileikettä</li>
+                                    <li>1 kesäkurpitsa</li>
+                                    <li>30g voita</li>
+                                    <li>Suolaa, pippuria, valkosipulijauhetta</li>
+                                </ul>
+                            </div>
+                            <div class="instructions">
+                                <ol>
+                                    <li>Leikkaa kesäkurpitsa pitkiksi ohuiksi viipaleiksi</li>
+                                    <li>Kuumenna pannu, lisää 15g voita</li>
+                                    <li>Paista broilerileike 5-6 min per puoli kunnes kypsä</li>
+                                    <li>Nosta sivuun, peitä foliolla</li>
+                                    <li>Lisää pannuun loput voi</li>
+                                    <li>Paista kesäkurpitsaviipaleita 2-3 min per puoli</li>
+                                    <li>Mausta suolalla, pippurilla ja valkosipulijauheella</li>
+                                    <li>Tarjoile broilerin kanssa</li>
+                                </ol>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="meal-card">
+                        <div class="meal-header">
+                            <div class="meal-time">🕐 01:00 - Vuoron puolivälissä</div>
+                        </div>
+                        <div class="meal-title">Pekoni & Munat</div>
+                        <div class="meal-desc">2 viipaletta pekonia, 2 munaa paistettuna, juustoraastetta.</div>
+                        
+                        <div class="meal-meta">
+                            <span class="prep-time">⏱️ 8 min</span>
+                            <div class="macros">
+                                <span class="macro-item"><strong>R:</strong> 40g</span>
+                                <span class="macro-item"><strong>P:</strong> 20g</span>
+                                <span class="macro-item"><strong>HH:</strong> 2g</span>
+                            </div>
+                        </div>
+
+                        <div class="recipe-toggle" onclick="toggleRecipe(this)">
+                            <span>📖 Näytä resepti</span>
+                        </div>
+                        
+                        <div class="recipe-details">
+                            <div class="recipe-title">🥓🥚 Valmistusohje</div>
+                            <div class="ingredients">
+                                <strong>Ainekset:</strong>
+                                <ul>
+                                    <li>2 viipaletta pekonia</li>
+                                    <li>2 kananmunaa</li>
+                                    <li>20g juustoraastetta</li>
+                                    <li>10g voita</li>
+                                </ul>
+                            </div>
+                            <div class="instructions">
+                                <ol>
+                                    <li>Kuumenna pannu keskilämmöllä</li>
+                                    <li>Paista pekonit rapeiksi (3-4 min per puoli)</li>
+                                    <li>Nosta pekonit, jätä rasva pannuun</li>
+                                    <li>Lisää voi</li>
+                                    <li>Riko munat pannuun</li>
+                                    <li>Paista 2-3 min, riko keltuaiset</li>
+                                    <li>Ripottele juusto päälle</li>
+                                    <li>Peitä kannella 30 sekuntia juuston sulamiseksi</li>
+                                    <li>Tarjoile pekonin kanssa</li>
+                                </ol>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="meal-card">
+                        <div class="meal-header">
+                            <div class="meal-time">🕐 07:00 - Vuoron jälkeen</div>
+                        </div>
+                        <div class="meal-title">Naudan Jauheliha & Kukkakaali</div>
+                        <div class="meal-desc">Naudan jauheliha (200g) paistettuna, kukkakaali (150g) höyrytettynä, tomaattipyreetä (1rkl), juustoraastetta.</div>
+                        
+                        <div class="meal-meta">
+                            <span class="prep-time">⏱️ 18 min</span>
+                            <div class="macros">
+                                <span class="macro-item"><strong>R:</strong> 50g</span>
+                                <span class="macro-item"><strong>P:</strong> 40g</span>
+                                <span class="macro-item"><strong>HH:</strong> 7g</span>
+                            </div>
+                        </div>
+
+                        <div class="blueberry-box">
+                            <span>🫐</span>
+                            <span>Mustikat 30g</span>
+                        </div>
+
+                        <div class="recipe-toggle" onclick="toggleRecipe(this)">
+                            <span>📖 Näytä resepti</span>
+                        </div>
+                        
+                        <div class="recipe-details">
+                            <div class="recipe-title">🥩🥦 Valmistusohje</div>
+                            <div class="ingredients">
+                                <strong>Ainekset:</strong>
+                                <ul>
+                                    <li>200g naudan jauhelihaa</li>
+                                    <li>150g kukkakaalia</li>
+                                    <li>1 rkl tomaattipyreetä</li>
+                                    <li>30g juustoraastetta</li>
+                                    <li>20g voita</li>
+                                    <li>Suolaa, pippuria, oreganoa</li>
+                                </ul>
+                            </div>
+                            <div class="instructions">
+                                <ol>
+                                    <li>Leikkaa kukkakaali pieniksi nupuiksi</li>
+                                    <li>Höyrytä 5-6 min kunnes pehmeää</li>
+                                    <li>Valuta ja jätä lämpimälle liedelle</li>
+                                    <li>Kuumenna toinen pannu, lisää 10g voita</li>
+                                    <li>Ruskista jauheliha 5-7 min</li>
+                                    <li>Mausta suolalla, pippurilla ja oreganoa</li>
+                                    <li>Sekoita tomaattipyree ja loput voi joukkoon</li>
+                                    <li>Yhdistä kukkakaali jauhelihan kanssa</li>
+                                    <li>Ripottele juusto päälle, anna sulaa kannen alla</li>
+                                </ol>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="meal-card">
+                        <div class="meal-header">
+                            <div class="meal-time">🕐 16:00 - Herättyä</div>
+                        </div>
+                        <div class="meal-title">Keto-smoothie</div>
+                        <div class="meal-desc">Turkkilainen jogurtti (150g), kuohukermaa (2rkl), vesi, sekoita. Pähkinöitä (15g) erikseen.</div>
+                        
+                        <div class="meal-meta">
+                            <span class="prep-time">⏱️ 3 min</span>
+                            <div class="macros">
+                                <span class="macro-item"><strong>R:</strong> 20g</span>
+                                <span class="macro-item"><strong>P:</strong> 10g</span>
+                                <span class="macro-item"><strong>HH:</strong> 5g</span>
+                            </div>
+                        </div>
+
+                        <div class="blueberry-box">
+                            <span>🫐</span>
+                            <span>Mustikat 50g smoothien seassa tai erikseen</span>
+                        </div>
+
+                        <div class="recipe-toggle" onclick="toggleRecipe(this)">
+                            <span>📖 Näytä resepti</span>
+                        </div>
+                        
+                        <div class="recipe-details">
+                            <div class="recipe-title">🥤 Valmistusohje</div>
+                            <div class="ingredients">
+                                <strong>Ainekset:</strong>
+                                <ul>
+                                    <li>150g turkkilaista jogurttia</li>
+                                    <li>2 rkl kuohukermaa</li>
+                                    <li>1/2 dl vettä</li>
+                                    <li>50g mustikoita</li>
+                                    <li>15g pähkinöitä</li>
+                                </ul>
+                            </div>
+                            <div class="instructions">
+                                <ol>
+                                    <li>Laita jogurtti, kerma ja vesi tehosekoittimeen</li>
+                                    <li>Sekoita tasaiseksi</li>
+                                    <li>Lisää mustikat, sekoita lyhyesti (saa jäädä palasia)</li>
+                                    <li>Kaada lasiin</li>
+                                    <li>Rouhi pähkinät ja ripottele päälle</li>
+                                    <li>Nauti heti</li>
+                                </ol>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- KESKIVIIKKO -->
+                <div id="ke-night" class="day-content">
+                    <div class="shift-header night">
+                        <span>🌙</span>
+                        KESKIVIIKKO - YÖVUORO (21:00-06:00)
+                    </div>
+                    
+                    <div class="meal-card">
+                        <div class="meal-header">
+                            <div class="meal-time">🕐 19:30 - Ennen vuoroa</div>
+                        </div>
+                        <div class="meal-title">Munakasrulla Pekonilla</div>
+                        <div class="meal-desc">3 munaa pekonilla ja juustoraasteella paistettuna, 1/4 avokado.</div>
+                        
+                        <div class="meal-meta">
+                            <span class="prep-time">⏱️ 10 min</span>
+                            <div class="macros">
+                                <span class="macro-item"><strong>R:</strong> 45g</span>
+                                <span class="macro-item"><strong>P:</strong> 28g</span>
+                                <span class="macro-item"><strong>HH:</strong> 3g</span>
+                            </div>
+                        </div>
+
+                        <div class="recipe-toggle" onclick="toggleRecipe(this)">
+                            <span>📖 Näytä resepti</span>
+                        </div>
+                        
+                        <div class="recipe-details">
+                            <div class="recipe-title">🍳 Valmistusohje</div>
+                            <div class="ingredients">
+                                <strong>Ainekset:</strong>
+                                <ul>
+                                    <li>3 kananmunaa</li>
+                                    <li>2 viipaletta pekonia</li>
+                                    <li>30g juustoraastetta</li>
+                                    <li>1/4 avokado</li>
+                                    <li>20g voita</li>
+                                </ul>
+                            </div>
+                            <div class="instructions">
+                                <ol>
+                                    <li>Paista pekonit rapeiksi, nosta sivuun</li>
+                                    <li>Vatkaa munat kevyesti kulhossa</li>
+                                    <li>Kuumenna voi pannussa</li>
+                                    <li>Kaada munat pannuun, levitä tasaisesti</li>
+                                    <li>Anna hyytyä pohjasta 2 min</li>
+                                    <li>Ripottele juusto päälle</li>
+                                    <li>Asettele pekonit juuston päälle</li>
+                                    <li>Taita rulla puoliksi</li>
+                                    <li>Paista vielä 1 min molemmin puolin</li>
+                                    <li>Tarjoile avokadon kanssa</li>
+                                </ol>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="meal-card">
+                        <div class="meal-header">
+                            <div class="meal-time">🕐 01:00 - Vuoron puolivälissä</div>
+                        </div>
+                        <div class="meal-title">Kinkku & Juusto</div>
+                        <div class="meal-desc">Kinkkusiivuja (100g), juustosiivuja (60g), kurkku, majoneesi.</div>
+                        
+                        <div class="meal-meta">
+                            <span class="prep-time">⏱️ 3 min</span>
+                            <div class="macros">
+                                <span class="macro-item"><strong>R:</strong> 35g</span>
+                                <span class="macro-item"><strong>P:</strong> 30g</span>
+                                <span class="macro-item"><strong>HH:</strong> 2g</span>
+                            </div>
+                        </div>
+
+                        <div class="recipe-toggle" onclick="toggleRecipe(this)">
+                            <span>📖 Näytä resepti</span>
+                        </div>
+                        
+                        <div class="recipe-details">
+                            <div class="recipe-title">🥪 Valmistusohje</div>
+                            <div class="ingredients">
+                                <strong>Ainekset:</strong>
+                                <ul>
+                                    <li>100g kinkkusiivuja</li>
+                                    <li>60g juustosiivuja (esim. Edam)</li>
+                                    <li>1/2 kurkku</li>
+                                    <li>1 rkl majoneesia</li>
+                                    <li>Sinappia (optio)</li>
+                                </ul>
+                            </div>
+                            <div class="instructions">
+                                <ol>
+                                    <li>Levitä kinkkusiivut lautaselle</li>
+                                    <li>Asettele juustosiivut päälle</li>
+                                    <li>Viipaloi kurkku</li>
+                                    <li>Laita päälle</li>
+                                    <li>Pirskottele majoneesi</li>
+                                    <li>Taita tai rullaa</li>
+                                </ol>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="meal-card">
+                        <div class="meal-header">
+                            <div class="meal-time">🕐 07:00 - Vuoron jälkeen</div>
+                        </div>
+                        <div class="meal-title">Porsaankyljys & Kaali</div>
+                        <div class="meal-desc">Porsaankyljys (250g) paistettuna, valkokaali (150g) paistettuna voissa.</div>
+                        
+                        <div class="meal-meta">
+                            <span class="prep-time">⏱️ 20 min</span>
+                            <div class="macros">
+                                <span class="macro-item"><strong>R:</strong> 55g</span>
+                                <span class="macro-item"><strong>P:</strong> 45g</span>
+                                <span class="macro-item"><strong>HH:</strong> 6g</span>
+                            </div>
+                        </div>
+
+                        <div class="blueberry-box">
+                            <span>🫐</span>
+                            <span>Mustikat 40g</span>
+                        </div>
+
+                        <div class="recipe-toggle" onclick="toggleRecipe(this)">
+                            <span>📖 Näytä resepti</span>
+                        </div>
+                        
+                        <div class="recipe-details">
+                            <div class="recipe-title">🥩 Valmistusohje</div>
+                            <div class="ingredients">
+                                <strong>Ainekset:</strong>
+                                <ul>
+                                    <li>250g porsaankyljystä</li>
+                                    <li>150g valkokaalia</li>
+                                    <li>30g voita</li>
+                                    <li>Suolaa, pippuria, katajanmarjaa</li>
+                                </ul>
+                            </div>
+                            <div class="instructions">
+                                <ol>
+                                    <li>Leikkaa kaali ohuiksi suikaleiksi</li>
+                                    <li>Kuumenna pannu, lisää 15g voita</li>
+                                    <li>Paista kyljystä 4-5 min per puoli</li>
+                                    <li>Nosta sivuun, peitä foliolla</li>
+                                    <li>Lisää pannuun loput voi</li>
+                                    <li>Paista kaalia 5-7 min kunnes pehmeää ja hieman ruskistunutta</li>
+                                    <li>Mausta suolalla ja pippurilla</li>
+                                    <li>Tarjoile kyljyksen kanssa</li>
+                                </ol>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="meal-card">
+                        <div class="meal-header">
+                            <div class="meal-time">🕐 16:00 - Herättyä</div>
+                        </div>
+                        <div class="meal-title">Munakokkeli & Avokado</div>
+                        <div class="meal-desc">2 munaa kokkeliksi paistettuna, 1/2 avokado, kermaviiliä (2rkl).</div>
+                        
+                        <div class="meal-meta">
+                            <span class="prep-time">⏱️ 8 min</span>
+                            <div class="macros">
+                                <span class="macro-item"><strong>R:</strong> 30g</span>
+                                <span class="macro-item"><strong>P:</strong> 16g</span>
+                                <span class="macro-item"><strong>HH:</strong> 5g</span>
+                            </div>
+                        </div>
+
+                        <div class="blueberry-box">
+                            <span>🫐</span>
+                            <span>Mustikat 50g</span>
+                        </div>
+
+                        <div class="recipe-toggle" onclick="toggleRecipe(this)">
+                            <span>📖 Näytä resepti</span>
+                        </div>
+                        
+                        <div class="recipe-details">
+                            <div class="recipe-title">🍳 Valmistusohje</div>
+                            <div class="ingredients">
+                                <strong>Ainekset:</strong>
+                                <ul>
+                                    <li>2 kananmunaa</li>
+                                    <li>1/2 avokado</li>
+                                    <li>2 rkl kermaviiliä</li>
+                                    <li>15g voita</li>
+                                    <li>Suolaa ja pippuria</li>
+                                </ul>
+                            </div>
+                            <div class="instructions">
+                                <ol>
+                                    <li>Riko munat kulhoon, vispaa kevyesti</li>
+                                    <li>Kuumenna voi pannussa matalalla lämmöllä</li>
+                                    <li>Kaada munat pannuun</li>
+                                    <li>Sekoita hitaasti lastalla</li>
+                                    <li>Nosta pois ennen kuin ovat täysin hyytyneet</li>
+                                    <li>Mausta suolalla ja pippurilla</li>
+                                    <li>Tarjoile avokadon ja kermaviilin kanssa</li>
+                                </ol>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- TORSTAI -->
+                <div id="to-night" class="day-content">
+                    <div class="shift-header night">
+                        <span>🌙</span>
+                        TORSTAI - YÖVUORO (21:00-06:00)
+                    </div>
+                    
+                    <div class="meal-card">
+                        <div class="meal-header">
+                            <div class="meal-time">🕐 19:30 - Ennen vuoroa</div>
+                        </div>
+                        <div class="meal-title">Lohi & Kurkkusalaatti</div>
+                        <div class="meal-desc">Kylmäsavulohisiiv
